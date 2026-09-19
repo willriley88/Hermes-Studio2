@@ -57,6 +57,17 @@ export type HermesConfig = {
   [key: string]: unknown
 }
 
+type HermesSessionListResponse = {
+  items?: Array<HermesSession>
+  data?: Array<HermesSession>
+}
+
+type HermesMessageListResponse = {
+  items?: Array<HermesMessage>
+  data?: Array<HermesMessage>
+  messages?: Array<HermesMessage>
+}
+
 // ── Helpers ───────────────────────────────────────────────────────
 
 async function hermesGet<T>(path: string): Promise<T> {
@@ -117,10 +128,18 @@ export async function listSessions(
   limit = 50,
   offset = 0,
 ): Promise<Array<HermesSession>> {
-  const resp = await hermesGet<{ items: Array<HermesSession>; total: number }>(
+  const resp = await hermesGet<HermesSessionListResponse>(
     `/api/sessions?limit=${limit}&offset=${offset}`,
   )
-  return resp.items
+  return normalizeSessionListResponse(resp)
+}
+
+export function normalizeSessionListResponse(
+  response: HermesSessionListResponse,
+): Array<HermesSession> {
+  if (Array.isArray(response.items)) return response.items
+  if (Array.isArray(response.data)) return response.data
+  return []
 }
 
 export async function getSession(sessionId: string): Promise<HermesSession> {
@@ -160,10 +179,12 @@ export async function deleteSession(sessionId: string): Promise<void> {
 export async function getMessages(
   sessionId: string,
 ): Promise<Array<HermesMessage>> {
-  const resp = await hermesGet<{ items: Array<HermesMessage>; total: number }>(
+  const resp = await hermesGet<HermesMessageListResponse>(
     `/api/sessions/${sessionId}/messages`,
   )
-  return resp.items
+  // Hermes returns OpenAI-style `{ object, session_id, data, pagination }`.
+  // Older builds returned `{ items, total }`; some return `{ messages }`.
+  return resp?.data ?? resp?.items ?? resp?.messages ?? []
 }
 
 export async function searchSessions(

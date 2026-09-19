@@ -356,9 +356,9 @@ function readContextTokens(session: GatewaySession): number {
   )
 }
 
-function deriveWorkerStatus(session: GatewaySession, updatedAt: string | null): ConductorWorker['status'] {
+export function deriveWorkerStatus(session: GatewaySession, updatedAt: string | null): ConductorWorker['status'] {
   const status = readString(session.status)?.toLowerCase()
-  if (status && ['complete', 'completed', 'done', 'success', 'succeeded'].includes(status)) return 'complete'
+  if (status && ['complete', 'completed', 'done', 'ended', 'success', 'succeeded'].includes(status)) return 'complete'
   if (status && ['idle', 'waiting', 'sleeping'].includes(status)) return 'idle'
   if (status && ['error', 'errored', 'failed', 'cancelled', 'canceled', 'killed'].includes(status)) return 'stale'
 
@@ -620,6 +620,36 @@ async function fetchWorkerOutput(sessionKey: string, limit = 5): Promise<string>
 // Main hook
 // ---------------------------------------------------------------------------
 
+export function buildConductorSessionPollingOptions(
+  phase: MissionPhase,
+  workerOutputs: Record<string, string>,
+) {
+  return {
+    refetchInterval:
+      phase === 'decomposing' ||
+      phase === 'running' ||
+      (phase === 'complete' && Object.keys(workerOutputs).length === 0)
+        ? 3_000
+        : false,
+    refetchIntervalInBackground: true,
+  } as const
+}
+
+export function buildConductorSessionsQueryKey(
+  workerKeys: Set<string>,
+  workerLabels: Set<string>,
+  missionStartedAt: string | null,
+) {
+  return [
+    'conductor',
+    'gateway',
+    'sessions',
+    missionStartedAt ?? '',
+    [...workerKeys].sort().join('|'),
+    [...workerLabels].sort().join('|'),
+  ] as const
+}
+
 export function useConductorGateway() {
   const [initialMission] = useState<PersistedMission | null>(() => loadPersistedMission())
   const [phase, setPhase] = useState<MissionPhase>(() => initialMission?.phase ?? 'idle')
@@ -674,7 +704,11 @@ export function useConductorGateway() {
   // ---------------------------------------------------------------------------
 
   const sessionsQuery = useQuery({
-    queryKey: ['conductor', 'gateway', 'sessions'],
+    queryKey: buildConductorSessionsQueryKey(
+      missionWorkerKeys,
+      missionWorkerLabels,
+      missionStartedAt,
+    ),
     queryFn: async () => {
       const payload = await fetchSessions()
       const sessions = Array.isArray(payload.sessions) ? payload.sessions : []
@@ -721,12 +755,7 @@ export function useConductorGateway() {
         })
     },
     enabled: phase !== 'idle',
-    refetchInterval:
-      phase === 'decomposing' ||
-      phase === 'running' ||
-      (phase === 'complete' && Object.keys(workerOutputs).length === 0)
-        ? 3_000
-        : false,
+    ...buildConductorSessionPollingOptions(phase, workerOutputs),
   })
 
   // ---------------------------------------------------------------------------

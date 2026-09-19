@@ -139,3 +139,6 @@ __pycache__/
 .runtime/
 workspace-final-markdown-review.md
 .worktrees/
+
+# npm residue — this repo uses pnpm
+package-lock.json
