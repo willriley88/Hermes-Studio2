@@ -2187,28 +2187,40 @@ export function ChatScreen({
         setSending(true)
         setWaitingForResponse(true)
 
-        if (!isPortableMode) {
-          void createSessionForMessage(threadId).catch((err: unknown) => {
-            if (import.meta.env.DEV) {
-              console.warn('[chat] failed to register new thread', err)
-            }
-            void queryClient.invalidateQueries({
-              queryKey: chatQueryKeys.sessions,
-            })
-          })
+        const dispatchSend = () => {
+          sendMessage(
+            threadId,
+            threadId,
+            trimmedBody,
+            attachmentPayload,
+            fastMode,
+            true,
+            typeof optimisticMessage.clientId === 'string'
+              ? optimisticMessage.clientId
+              : '',
+          )
         }
 
-        sendMessage(
-          threadId,
-          threadId,
-          trimmedBody,
-          attachmentPayload,
-          fastMode,
-          true,
-          typeof optimisticMessage.clientId === 'string'
-            ? optimisticMessage.clientId
-            : '',
-        )
+        if (!isPortableMode) {
+          // Wait for the session to actually exist on the gateway before
+          // streaming against it — firing both concurrently races and the
+          // stream call can 404 with session_not_found if it wins the race.
+          void createSessionForMessage(threadId)
+            .catch((err: unknown) => {
+              if (import.meta.env.DEV) {
+                console.warn('[chat] failed to register new thread', err)
+              }
+              void queryClient.invalidateQueries({
+                queryKey: chatQueryKeys.sessions,
+              })
+            })
+            .finally(() => {
+              dispatchSend()
+            })
+        } else {
+          dispatchSend()
+        }
+
         // In portable mode, navigate to /chat/main instead of UUID
         navigate({
           to: '/chat/$sessionKey',

@@ -60,15 +60,15 @@ const PROVIDERS = [
     id: 'openai-codex',
     name: 'OpenAI Codex',
     logo: '/providers/openai.png',
-    desc: 'Free via ChatGPT Pro',
-    authType: 'oauth',
+    desc: 'Free via ChatGPT Pro (hermes auth add)',
+    authType: 'oauth_cli',
   },
   {
     id: 'anthropic',
     name: 'Anthropic',
     logo: '/providers/anthropic.png',
-    desc: 'API key required',
-    authType: 'api_key',
+    desc: 'Free via Claude Pro (hermes auth add)',
+    authType: 'oauth_cli',
     envKey: 'ANTHROPIC_API_KEY',
   },
   {
@@ -149,6 +149,7 @@ export function HermesOnboarding() {
   const needsBaseUrl =
     provider?.id === 'ollama' || provider?.authType === 'custom'
   const isOAuth = provider?.authType === 'oauth'
+  const isCliOAuth = provider?.authType === 'oauth_cli'
   const capabilities = backendInfo?.capabilities
   const canEditConfig = Boolean(capabilities?.config)
   const enhancedFeatures = getEnhancedFeatureNames(capabilities)
@@ -755,36 +756,40 @@ export function HermesOnboarding() {
                   </div>
                 )}
 
-              {selectedProvider &&
-                isOAuth &&
-                selectedProvider === 'openai-codex' &&
-                canEditConfig && (
+              {selectedProvider && isCliOAuth && canEditConfig && (
+                <div
+                  className="space-y-2 rounded-xl p-4 text-left"
+                  style={{ ...cardStyle, borderColor: 'var(--theme-border)' }}
+                >
+                  <p className="text-sm font-medium">Run in your terminal</p>
                   <div
-                    className="space-y-2 rounded-xl p-4 text-left"
-                    style={{ ...cardStyle, borderColor: 'var(--theme-border)' }}
+                    className="rounded-lg px-3 py-2 font-mono text-xs"
+                    style={{ background: 'rgba(0,0,0,0.2)' }}
                   >
-                    <p className="text-sm font-medium">Run in your terminal</p>
-                    <div
-                      className="rounded-lg px-3 py-2 font-mono text-xs"
-                      style={{ background: 'rgba(0,0,0,0.2)' }}
-                    >
-                      hermes auth login openai-codex
-                    </div>
-                    <p className="text-xs" style={mutedStyle}>
-                      After the login flow completes, click below to refresh
-                      provider settings.
-                    </p>
-                    <button
-                      onClick={async () => {
-                        await saveProviderConfig()
-                        await loadModels()
-                      }}
-                      className="w-full rounded-lg bg-accent-500 py-2 text-xs font-medium text-white"
-                    >
-                      I&apos;ve authenticated
-                    </button>
+                    hermes auth add {selectedProvider} --type oauth
                   </div>
-                )}
+                  <p className="text-xs" style={mutedStyle}>
+                    Opens a browser to sign in with your{' '}
+                    {selectedProvider === 'anthropic'
+                      ? 'Claude Pro/Max'
+                      : 'ChatGPT Plus/Pro'}{' '}
+                    subscription. Hermes Studio can&apos;t start this OAuth
+                    flow itself — it only reads whichever credentials are
+                    already registered with the Hermes gateway. After the
+                    login flow completes, click below to refresh provider
+                    settings.
+                  </p>
+                  <button
+                    onClick={async () => {
+                      await saveProviderConfig()
+                      await loadModels()
+                    }}
+                    className="w-full rounded-lg bg-accent-500 py-2 text-xs font-medium text-white"
+                  >
+                    I&apos;ve authenticated
+                  </button>
+                </div>
+              )}
 
               {selectedProvider && (needsApiKey || needsBaseUrl) && (
                 <div className="space-y-2 pt-1">
