@@ -8,6 +8,7 @@ import {
   HERMES_API,
   ensureGatewayProbed,
   getCapabilities,
+  hermesAuthHeaders,
 } from '../../server/gateway-capabilities'
 
 export const Route = createFileRoute('/api/hermes-runs')({
@@ -30,7 +31,7 @@ export const Route = createFileRoute('/api/hermes-runs')({
         const body = await request.text()
         const res = await fetch(`${HERMES_API}/v1/runs`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...hermesAuthHeaders() },
           body,
         })
         return new Response(await res.text(), {

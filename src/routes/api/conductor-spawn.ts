@@ -13,7 +13,19 @@ import {
   ensureGatewayProbed,
 } from '../../server/gateway-capabilities'
 
+/**
+ * The gateway caps cron-job prompts at 5000 characters
+ * (api_server.py::_MAX_PROMPT_LENGTH). Inlining the whole dispatch SKILL.md
+ * blew that cap and every spawn came back 400 "Prompt must be ≤ 5000
+ * characters". Instead we attach the skill BY NAME via the job's `skills`
+ * field — the gateway loads it into the orchestrator's context itself — and
+ * only inline the skill text as a fallback when it isn't installed.
+ */
+const DISPATCH_SKILL_NAME = 'workspace-dispatch'
+const MAX_PROMPT_CHARS = 5000
+
 let cachedSkill: string | null = null
+let cachedSkillInstalled: boolean | null = null
 
 type ConductorSpawnBody = {
   goal?: unknown
@@ -56,6 +68,38 @@ function loadDispatchSkill(): string {
   return cachedSkill
 }
 
+/** True when the skill is installed in the agent's own skill dir, so the
+ *  gateway can load it by name instead of us inlining it. */
+function dispatchSkillInstalled(): boolean {
+  if (cachedSkillInstalled !== null) return cachedSkillInstalled
+  const home = process.env.HOME ?? '~'
+  const profile = process.env.HERMES_PROFILE
+  const candidates = [
+    resolve(home, '.hermes/skills', DISPATCH_SKILL_NAME, 'SKILL.md'),
+    ...(profile
+      ? [
+          resolve(
+            home,
+            '.hermes/profiles',
+            profile,
+            'skills',
+            DISPATCH_SKILL_NAME,
+            'SKILL.md',
+          ),
+        ]
+      : []),
+  ]
+  cachedSkillInstalled = candidates.some((p) => {
+    try {
+      readFileSync(p, 'utf-8')
+      return true
+    } catch {
+      return false
+    }
+  })
+  return cachedSkillInstalled
+}
+
 function readOptionalString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
 }
@@ -74,6 +118,7 @@ function buildOrchestratorPrompt(
     projectsDir: string
     maxParallel: number
     supervised: boolean
+    skillAttached: boolean
   },
 ): string {
   const outputBase = options.projectsDir || '/tmp'
@@ -85,7 +130,10 @@ function buildOrchestratorPrompt(
     '',
     '## Dispatch Skill Instructions',
     '',
-    skill || '(workspace-dispatch skill not found locally; proceed using create_task to spawn workers)',
+    skill ||
+      (options.skillAttached
+        ? `Load the \`${DISPATCH_SKILL_NAME}\` skill (attached to this job) and follow it.`
+        : `(${DISPATCH_SKILL_NAME} skill not found locally; proceed using the delegate_task tool to spawn workers)`),
     '',
     '## Mission',
     '',
@@ -110,7 +158,8 @@ function buildOrchestratorPrompt(
       : []),
     '',
     '## Critical Rules',
-    '- Use create_task / delegate_task to create worker agents for each task',
+    '- Use the `delegate_task` tool to spawn a worker for each task. Hermes has no `sessions_spawn`, `sessions_yield`, or `create_task` tool — calling those fails silently and stalls the mission.',
+    '- Subagents are isolated: repeat every path, constraint and piece of background in each task\'s `context` field.',
     '- Do NOT do the work yourself — spawn workers',
     '- For simple tasks (single file, quick mockup), use ONLY 1 task with 1 worker — do not over-decompose',
     '- Do NOT ask for confirmation — start immediately',
@@ -136,12 +185,16 @@ async function createHermesJob(payload: {
   schedule: string
   prompt: string
   deliver?: string
+  skills?: Array<string>
 }): Promise<{ id?: string; name?: string; error?: string }> {
   const body = JSON.stringify({
     name: payload.name,
     schedule: payload.schedule,
     prompt: payload.prompt,
     deliver: payload.deliver ?? 'local',
+    ...(payload.skills && payload.skills.length
+      ? { skills: payload.skills }
+      : {}),
   })
   await ensureGatewayProbed()
   const res = await fetch(`${HERMES_API}/api/jobs`, {
@@ -193,14 +246,40 @@ export const Route = createFileRoute('/api/conductor-spawn')({
             )
           }
 
-          const skill = loadDispatchSkill()
-          const prompt = buildOrchestratorPrompt(goal, skill, {
+          // Prefer attaching the skill by name (no prompt-budget cost).
+          // Only inline its text when the agent can't load it itself.
+          const useSkillRef = dispatchSkillInstalled()
+          const skill = useSkillRef ? '' : loadDispatchSkill()
+          let prompt = buildOrchestratorPrompt(goal, skill, {
             orchestratorModel,
             workerModel,
             projectsDir,
             maxParallel,
             supervised,
+            skillAttached: useSkillRef,
           })
+
+          if (prompt.length > MAX_PROMPT_CHARS) {
+            // Last resort: drop the inlined skill body rather than let the
+            // gateway reject the whole mission with a 400.
+            prompt = buildOrchestratorPrompt(goal, '', {
+              orchestratorModel,
+              workerModel,
+              projectsDir,
+              maxParallel,
+              supervised,
+              skillAttached: useSkillRef,
+            })
+          }
+          if (prompt.length > MAX_PROMPT_CHARS) {
+            return new Response(
+              JSON.stringify({
+                ok: false,
+                error: `Mission prompt is ${prompt.length} chars; the gateway caps job prompts at ${MAX_PROMPT_CHARS}. Shorten the goal.`,
+              }),
+              { status: 400, headers: { 'Content-Type': 'application/json' } },
+            )
+          }
 
           const jobName = `conductor-${Date.now()}`
           const result = await createHermesJob({
@@ -208,6 +287,7 @@ export const Route = createFileRoute('/api/conductor-spawn')({
             schedule: nowPlusSecondsIso(5),
             prompt,
             deliver: 'local',
+            skills: useSkillRef ? [DISPATCH_SKILL_NAME] : undefined,
           })
 
           if (result.error) {

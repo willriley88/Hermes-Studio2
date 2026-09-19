@@ -71,8 +71,22 @@ let lastLoggedSummary = ''
 /** Optional bearer token for authenticated endpoints. */
 export const BEARER_TOKEN = process.env.HERMES_API_TOKEN || ''
 
-function authHeaders(): Record<string, string> {
+/**
+ * Authorization headers for gateway calls.
+ *
+ * The Hermes gateway rejects EVERY /api/* and /v1/* request with 401
+ * `gateway_auth_failed` when API_SERVER_KEY is set and no bearer token is
+ * sent. Any route handler that fetches HERMES_API must spread this in —
+ * several proxy routes historically forgot to, which made Jobs/Runs/skill
+ * install silently dead while the capability probe (which does send it)
+ * reported the endpoints as available.
+ */
+export function hermesAuthHeaders(): Record<string, string> {
   return BEARER_TOKEN ? { Authorization: `Bearer ${BEARER_TOKEN}` } : {}
+}
+
+function authHeaders(): Record<string, string> {
+  return hermesAuthHeaders()
 }
 
 // ── Probing ───────────────────────────────────────────────────────

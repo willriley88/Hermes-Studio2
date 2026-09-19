@@ -1,5 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { HERMES_API } from '../../../server/gateway-capabilities'
+import {
+  HERMES_API,
+  hermesAuthHeaders,
+} from '../../../server/gateway-capabilities'
 import { isAuthenticated } from '../../../server/auth-middleware'
 
 async function proxyRequest(request: Request, splat: string) {
@@ -11,6 +14,11 @@ async function proxyRequest(request: Request, splat: string) {
   const headers = new Headers(request.headers)
   headers.delete('host')
   headers.delete('content-length')
+  // The browser never holds the gateway's API_SERVER_KEY — inject it here or
+  // every proxied call comes back 401 gateway_auth_failed.
+  for (const [key, value] of Object.entries(hermesAuthHeaders())) {
+    headers.set(key, value)
+  }
 
   const init: RequestInit = {
     method: request.method,

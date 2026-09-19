@@ -10,6 +10,7 @@ import {
   HERMES_API,
   ensureGatewayProbed,
   getCapabilities,
+  hermesAuthHeaders,
 } from '../../../server/gateway-capabilities'
 
 const execFileAsync = promisify(execFile)
@@ -204,7 +205,10 @@ export const Route = createFileRoute('/api/skills/install')({
             try {
               const res = await fetch(`${HERMES_API}/api/skills/install`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...hermesAuthHeaders(),
+                },
                 body: JSON.stringify({ skillId }),
                 signal: AbortSignal.timeout(30_000),
               })

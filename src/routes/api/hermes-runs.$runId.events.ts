@@ -5,7 +5,10 @@
  */
 import { createFileRoute } from '@tanstack/react-router'
 import { isAuthenticated } from '../../server/auth-middleware'
-import { HERMES_API } from '../../server/gateway-capabilities'
+import {
+  HERMES_API,
+  hermesAuthHeaders,
+} from '../../server/gateway-capabilities'
 
 export const Route = createFileRoute('/api/hermes-runs/$runId/events')({
   server: {
@@ -21,6 +24,7 @@ export const Route = createFileRoute('/api/hermes-runs/$runId/events')({
         try {
           upstream = await fetch(
             `${HERMES_API}/v1/runs/${params.runId}/events`,
+            { headers: hermesAuthHeaders() },
           )
         } catch {
           return new Response(

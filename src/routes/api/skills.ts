@@ -7,6 +7,7 @@ import { isAuthenticated } from '../../server/auth-middleware'
 import {
   ensureGatewayProbed,
   getCapabilities,
+  hermesAuthHeaders,
 } from '../../server/gateway-capabilities'
 import { requireJsonContentType } from '../../server/rate-limit'
 
@@ -332,7 +333,9 @@ function normalizeSkill(value: unknown): SkillSummary | null {
 }
 
 async function fetchHermesSkills(): Promise<Array<SkillSummary>> {
-  const response = await fetch(`${HERMES_API_URL}/api/skills`)
+  const response = await fetch(`${HERMES_API_URL}/api/skills`, {
+    headers: hermesAuthHeaders(),
+  })
   if (!response.ok) {
     const body = await response.text().catch(() => '')
     throw new Error(body || `Hermes skills request failed (${response.status})`)
