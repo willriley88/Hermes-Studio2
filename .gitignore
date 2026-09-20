@@ -142,3 +142,6 @@ workspace-final-markdown-review.md
 
 # npm residue — this repo uses pnpm
 package-lock.json
+
+# Workbench runtime database
+.runtime/

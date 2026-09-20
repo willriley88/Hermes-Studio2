@@ -25,6 +25,7 @@ import { Route as MemoryRouteImport } from './routes/memory'
 import { Route as OperationsRouteImport } from './routes/operations'
 import { Route as PatternsRouteImport } from './routes/patterns'
 import { Route as ProfilesRouteImport } from './routes/profiles'
+import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as SessionHistoryRouteImport } from './routes/session-history'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SkillsRouteImport } from './routes/skills'
@@ -64,6 +65,8 @@ import { Route as ApiTerminalCloseRouteImport } from './routes/api/terminal-clos
 import { Route as ApiTerminalInputRouteImport } from './routes/api/terminal-input'
 import { Route as ApiTerminalResizeRouteImport } from './routes/api/terminal-resize'
 import { Route as ApiTerminalStreamRouteImport } from './routes/api/terminal-stream'
+import { Route as ApiWorkbenchRouteImport } from './routes/api/workbench'
+import { Route as ApiWorkbenchFilesRouteImport } from './routes/api/workbench-files'
 import { Route as ApiWorkspaceRouteImport } from './routes/api/workspace'
 import { Route as ChatIndexRouteImport } from './routes/chat/index'
 import { Route as ChatSessionKeyRouteImport } from './routes/chat/$sessionKey'
@@ -197,6 +200,11 @@ const PatternsRoute = PatternsRouteImport.update({
 const ProfilesRoute = ProfilesRouteImport.update({
   id: '/profiles',
   path: '/profiles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SessionHistoryRoute = SessionHistoryRouteImport.update({
@@ -392,6 +400,16 @@ const ApiTerminalResizeRoute = ApiTerminalResizeRouteImport.update({
 const ApiTerminalStreamRoute = ApiTerminalStreamRouteImport.update({
   id: '/api/terminal-stream',
   path: '/api/terminal-stream',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWorkbenchRoute = ApiWorkbenchRouteImport.update({
+  id: '/api/workbench',
+  path: '/api/workbench',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWorkbenchFilesRoute = ApiWorkbenchFilesRouteImport.update({
+  id: '/api/workbench-files',
+  path: '/api/workbench-files',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWorkspaceRoute = ApiWorkspaceRouteImport.update({
@@ -687,6 +705,7 @@ export interface FileRoutesByFullPath {
   '/operations': typeof OperationsRoute
   '/patterns': typeof PatternsRoute
   '/profiles': typeof ProfilesRoute
+  '/projects': typeof ProjectsRoute
   '/session-history': typeof SessionHistoryRoute
   '/settings': typeof SettingsRouteWithChildren
   '/skills': typeof SkillsRoute
@@ -726,6 +745,8 @@ export interface FileRoutesByFullPath {
   '/api/terminal-input': typeof ApiTerminalInputRoute
   '/api/terminal-resize': typeof ApiTerminalResizeRoute
   '/api/terminal-stream': typeof ApiTerminalStreamRoute
+  '/api/workbench': typeof ApiWorkbenchRoute
+  '/api/workbench-files': typeof ApiWorkbenchFilesRoute
   '/api/workspace': typeof ApiWorkspaceRoute
   '/chat/$sessionKey': typeof ChatSessionKeyRoute
   '/crews/$crewId': typeof CrewsCrewIdRoute
@@ -798,6 +819,7 @@ export interface FileRoutesByTo {
   '/operations': typeof OperationsRoute
   '/patterns': typeof PatternsRoute
   '/profiles': typeof ProfilesRoute
+  '/projects': typeof ProjectsRoute
   '/session-history': typeof SessionHistoryRoute
   '/skills': typeof SkillsRoute
   '/tasks': typeof TasksRoute
@@ -836,6 +858,8 @@ export interface FileRoutesByTo {
   '/api/terminal-input': typeof ApiTerminalInputRoute
   '/api/terminal-resize': typeof ApiTerminalResizeRoute
   '/api/terminal-stream': typeof ApiTerminalStreamRoute
+  '/api/workbench': typeof ApiWorkbenchRoute
+  '/api/workbench-files': typeof ApiWorkbenchFilesRoute
   '/api/workspace': typeof ApiWorkspaceRoute
   '/chat/$sessionKey': typeof ChatSessionKeyRoute
   '/crews/$crewId': typeof CrewsCrewIdRoute
@@ -909,6 +933,7 @@ export interface FileRoutesById {
   '/operations': typeof OperationsRoute
   '/patterns': typeof PatternsRoute
   '/profiles': typeof ProfilesRoute
+  '/projects': typeof ProjectsRoute
   '/session-history': typeof SessionHistoryRoute
   '/settings': typeof SettingsRouteWithChildren
   '/skills': typeof SkillsRoute
@@ -948,6 +973,8 @@ export interface FileRoutesById {
   '/api/terminal-input': typeof ApiTerminalInputRoute
   '/api/terminal-resize': typeof ApiTerminalResizeRoute
   '/api/terminal-stream': typeof ApiTerminalStreamRoute
+  '/api/workbench': typeof ApiWorkbenchRoute
+  '/api/workbench-files': typeof ApiWorkbenchFilesRoute
   '/api/workspace': typeof ApiWorkspaceRoute
   '/chat/$sessionKey': typeof ChatSessionKeyRoute
   '/crews/$crewId': typeof CrewsCrewIdRoute
@@ -1022,6 +1049,7 @@ export interface FileRouteTypes {
     | '/operations'
     | '/patterns'
     | '/profiles'
+    | '/projects'
     | '/session-history'
     | '/settings'
     | '/skills'
@@ -1061,6 +1089,8 @@ export interface FileRouteTypes {
     | '/api/terminal-input'
     | '/api/terminal-resize'
     | '/api/terminal-stream'
+    | '/api/workbench'
+    | '/api/workbench-files'
     | '/api/workspace'
     | '/chat/$sessionKey'
     | '/crews/$crewId'
@@ -1133,6 +1163,7 @@ export interface FileRouteTypes {
     | '/operations'
     | '/patterns'
     | '/profiles'
+    | '/projects'
     | '/session-history'
     | '/skills'
     | '/tasks'
@@ -1171,6 +1202,8 @@ export interface FileRouteTypes {
     | '/api/terminal-input'
     | '/api/terminal-resize'
     | '/api/terminal-stream'
+    | '/api/workbench'
+    | '/api/workbench-files'
     | '/api/workspace'
     | '/chat/$sessionKey'
     | '/crews/$crewId'
@@ -1243,6 +1276,7 @@ export interface FileRouteTypes {
     | '/operations'
     | '/patterns'
     | '/profiles'
+    | '/projects'
     | '/session-history'
     | '/settings'
     | '/skills'
@@ -1282,6 +1316,8 @@ export interface FileRouteTypes {
     | '/api/terminal-input'
     | '/api/terminal-resize'
     | '/api/terminal-stream'
+    | '/api/workbench'
+    | '/api/workbench-files'
     | '/api/workspace'
     | '/chat/$sessionKey'
     | '/crews/$crewId'
@@ -1355,6 +1391,7 @@ export interface RootRouteChildren {
   OperationsRoute: typeof OperationsRoute
   PatternsRoute: typeof PatternsRoute
   ProfilesRoute: typeof ProfilesRoute
+  ProjectsRoute: typeof ProjectsRoute
   SessionHistoryRoute: typeof SessionHistoryRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   SkillsRoute: typeof SkillsRoute
@@ -1394,6 +1431,8 @@ export interface RootRouteChildren {
   ApiTerminalInputRoute: typeof ApiTerminalInputRoute
   ApiTerminalResizeRoute: typeof ApiTerminalResizeRoute
   ApiTerminalStreamRoute: typeof ApiTerminalStreamRoute
+  ApiWorkbenchRoute: typeof ApiWorkbenchRoute
+  ApiWorkbenchFilesRoute: typeof ApiWorkbenchFilesRoute
   ApiWorkspaceRoute: typeof ApiWorkspaceRoute
   ChatSessionKeyRoute: typeof ChatSessionKeyRoute
   CrewsCrewIdRoute: typeof CrewsCrewIdRoute
@@ -1540,6 +1579,13 @@ declare module '@tanstack/react-router' {
       path: '/profiles'
       fullPath: '/profiles'
       preLoaderRoute: typeof ProfilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/session-history': {
@@ -1813,6 +1859,20 @@ declare module '@tanstack/react-router' {
       path: '/api/terminal-stream'
       fullPath: '/api/terminal-stream'
       preLoaderRoute: typeof ApiTerminalStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/workbench': {
+      id: '/api/workbench'
+      path: '/api/workbench'
+      fullPath: '/api/workbench'
+      preLoaderRoute: typeof ApiWorkbenchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/workbench-files': {
+      id: '/api/workbench-files'
+      path: '/api/workbench-files'
+      fullPath: '/api/workbench-files'
+      preLoaderRoute: typeof ApiWorkbenchFilesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/workspace': {
@@ -2347,6 +2407,7 @@ const rootRouteChildren: RootRouteChildren = {
   OperationsRoute: OperationsRoute,
   PatternsRoute: PatternsRoute,
   ProfilesRoute: ProfilesRoute,
+  ProjectsRoute: ProjectsRoute,
   SessionHistoryRoute: SessionHistoryRoute,
   SettingsRoute: SettingsRouteWithChildren,
   SkillsRoute: SkillsRoute,
@@ -2386,6 +2447,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTerminalInputRoute: ApiTerminalInputRoute,
   ApiTerminalResizeRoute: ApiTerminalResizeRoute,
   ApiTerminalStreamRoute: ApiTerminalStreamRoute,
+  ApiWorkbenchRoute: ApiWorkbenchRoute,
+  ApiWorkbenchFilesRoute: ApiWorkbenchFilesRoute,
   ApiWorkspaceRoute: ApiWorkspaceRoute,
   ChatSessionKeyRoute: ChatSessionKeyRoute,
   CrewsCrewIdRoute: CrewsCrewIdRoute,

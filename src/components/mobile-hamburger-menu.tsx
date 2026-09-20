@@ -38,6 +38,13 @@ const NAV_ITEMS = [
     match: (p: string) => p.startsWith('/dashboard'),
   },
   {
+    id: 'projects',
+    label: 'Projects',
+    icon: File01Icon,
+    to: '/projects',
+    match: (p: string) => p.startsWith('/projects'),
+  },
+  {
     id: 'terminal',
     label: 'Terminal',
     icon: CommandLineIcon,
