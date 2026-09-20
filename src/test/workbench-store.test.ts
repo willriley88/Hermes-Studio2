@@ -94,7 +94,7 @@ describe('WorkbenchStore', () => {
     expect(reopened.state().runs.find((r) => r.id === run.id)?.status).toBe('interrupted')
   })
 
-  it('rejects a second concurrent run on the same task', () => {
+  it('rejects a second concurrent run on the same task for the same role', () => {
     const { store } = fixture()
     const project = store.createProject({ name: 'P', path: '/p', description: '' })
     const task = store.createTask({ projectId: project.id, title: 'T', description: '' })
@@ -110,6 +110,141 @@ describe('WorkbenchStore', () => {
     }
     store.createRun(base)
     expect(() => store.createRun(base)).toThrow(/already/i)
+  })
+
+  it('allows different crew roles to work on the same task concurrently', () => {
+    const { store } = fixture()
+    const project = store.createProject({ name: 'P', path: '/p', description: '' })
+    const task = store.createTask({ projectId: project.id, title: 'T', description: '' })
+    store.createRun({
+      taskId: task.id, projectId: project.id, connectionId: 'claude', model: 'haiku',
+      roleId: 'builtin-nova', roleName: 'Nova', rolePrompt: 'security', files: [],
+    })
+    expect(() => store.createRun({
+      taskId: task.id, projectId: project.id, connectionId: 'chatgpt', model: 'gpt-5.6-sol',
+      roleId: 'builtin-kai', roleName: 'Kai', rolePrompt: 'engineering', files: [],
+    })).not.toThrow()
+  })
+
+  it('keeps a crew task running until every member finishes, then preserves completed work for review', () => {
+    const { store } = fixture()
+    const project = store.createProject({ name: 'P', path: '/p', description: '' })
+    const task = store.createTask({ projectId: project.id, title: 'Crew task', description: '' })
+    const first = store.createRun({
+      taskId: task.id, projectId: project.id, connectionId: 'claude', model: 'haiku',
+      roleId: 'nova', roleName: 'Nova', rolePrompt: 'security', files: [],
+    })
+    const second = store.createRun({
+      taskId: task.id, projectId: project.id, connectionId: 'chatgpt', model: 'gpt-5.6-sol',
+      roleId: 'kai', roleName: 'Kai', rolePrompt: 'engineering', files: [],
+    })
+    store.markRunning(first.id)
+    store.markRunning(second.id)
+    store.completeRun(first.id, { output: 'useful finding' })
+    expect(store.getTask(task.id)?.status).toBe('running')
+    store.failRun(second.id, 'provider unavailable')
+    expect(store.getTask(task.id)?.status).toBe('review')
+  })
+
+  it('shows a task as running the moment a run is queued, before it starts', () => {
+    const { store } = fixture()
+    const project = store.createProject({ name: 'P', path: '/p', description: '' })
+    const task = store.createTask({ projectId: project.id, title: 'T', description: '' })
+    store.createRun({
+      taskId: task.id, projectId: project.id, connectionId: 'claude', model: 'haiku',
+      roleId: 'nova', roleName: 'Nova', rolePrompt: 'p', files: [],
+    })
+    // The run is still queued behind the concurrency limit — the task must not
+    // sit in `backlog` pretending nothing is happening.
+    expect(store.getTask(task.id)?.status).toBe('running')
+  })
+
+  it('lets exactly one caller claim a due schedule, so overlapping ticks cannot double-dispatch', () => {
+    const { store } = fixture()
+    const project = store.createProject({ name: 'P', path: '/p', description: '' })
+    const crew = store.createCrew({ name: 'C', charter: '', projectId: project.id })
+    const due = Date.now() - 1_000
+    const schedule = store.createSchedule({
+      crewId: crew.id, taskTemplate: 'Audit', mode: 'analyze', files: [],
+      schedule: 'hourly', nextRunAt: due,
+    })
+
+    expect(store.claimSchedule(schedule.id, due, Date.now(), due + 3_600_000)).toBe(true)
+    // A second tick still holding the stale due timestamp loses the race.
+    expect(store.claimSchedule(schedule.id, due, Date.now(), due + 3_600_000)).toBe(false)
+  })
+
+  it('will not claim a disabled schedule', () => {
+    const { store } = fixture()
+    const project = store.createProject({ name: 'P', path: '/p', description: '' })
+    const crew = store.createCrew({ name: 'C', charter: '', projectId: project.id })
+    const due = Date.now() - 1_000
+    const schedule = store.createSchedule({
+      crewId: crew.id, taskTemplate: 'Audit', mode: 'analyze', files: [],
+      schedule: 'hourly', nextRunAt: due,
+    })
+    store.setScheduleEnabled(schedule.id, false)
+    expect(store.claimSchedule(schedule.id, due, Date.now(), due + 3_600_000)).toBe(false)
+  })
+
+  it('persists why a scheduled occurrence produced nothing', () => {
+    const { store } = fixture()
+    const project = store.createProject({ name: 'P', path: '/p', description: '' })
+    const crew = store.createCrew({ name: 'C', charter: '', projectId: project.id })
+    const schedule = store.createSchedule({
+      crewId: crew.id, taskTemplate: 'Audit', mode: 'analyze', files: [],
+      schedule: 'daily', nextRunAt: Date.now(),
+    })
+    store.setScheduleError(schedule.id, 'Nova: Claude is not available')
+    expect(store.listSchedules()[0].lastError).toMatch(/not available/)
+  })
+
+  it('cleans up a crew task that produced no usable run, but keeps one that did', () => {
+    const { store } = fixture()
+    const project = store.createProject({ name: 'P', path: '/p', description: '' })
+    const orphan = store.createTask({ projectId: project.id, title: 'All seats failed', description: '' })
+    expect(store.deleteTaskIfNoUsableRuns(orphan.id)).toBe(true)
+    expect(store.getTask(orphan.id)).toBeNull()
+
+    const kept = store.createTask({ projectId: project.id, title: 'One seat ran', description: '' })
+    store.createRun({
+      taskId: kept.id, projectId: project.id, connectionId: 'claude', model: 'haiku',
+      roleId: 'nova', roleName: 'Nova', rolePrompt: 'p', files: [],
+    })
+    expect(store.deleteTaskIfNoUsableRuns(kept.id)).toBe(false)
+    expect(store.getTask(kept.id)).not.toBeNull()
+  })
+
+  it('reports a pending patch so a recurring edit schedule cannot stack worktrees', () => {
+    const { store } = fixture()
+    const project = store.createProject({ name: 'P', path: '/p', description: '' })
+    const task = store.createTask({ projectId: project.id, title: 'T', description: '' })
+    const run = store.createRun({
+      taskId: task.id, projectId: project.id, connectionId: 'claude', model: 'sonnet',
+      roleId: 'kai', roleName: 'Kai', rolePrompt: 'p', files: [], mode: 'edit',
+    })
+    expect(store.hasPendingPatchForProject(project.id)).toBe(false)
+
+    store.recordDiff(run.id, 'diff --git a/x b/x', 1)
+    expect(store.hasPendingPatchForProject(project.id)).toBe(true)
+
+    store.setPatchState(run.id, 'applied')
+    expect(store.hasPendingPatchForProject(project.id)).toBe(false)
+  })
+
+  it('forgets the worktree path once a patch is resolved, so cleanup is not retried forever', () => {
+    const { store } = fixture()
+    const project = store.createProject({ name: 'P', path: '/p', description: '' })
+    const task = store.createTask({ projectId: project.id, title: 'T', description: '' })
+    const run = store.createRun({
+      taskId: task.id, projectId: project.id, connectionId: 'claude', model: 'sonnet',
+      roleId: 'kai', roleName: 'Kai', rolePrompt: 'p', files: [], mode: 'edit',
+    })
+    store.attachWorktree(run.id, '/tmp/hermes-wt-abc/abc', 'hermes/run-abc')
+    expect(store.runsWithWorktrees()).toHaveLength(1)
+
+    store.clearWorktree(run.id)
+    expect(store.runsWithWorktrees()).toHaveLength(0)
   })
 
   it('completing a run moves the task to review, never straight to done', () => {

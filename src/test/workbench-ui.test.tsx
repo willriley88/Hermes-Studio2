@@ -38,6 +38,26 @@ const STATE: WorkbenchState = {
       tags: [], isBuiltIn: true, createdAt: 0, updatedAt: 0,
     },
   ],
+  crews: [],
+  members: [],
+  schedules: [],
+}
+
+const CREW_STATE: WorkbenchState = {
+  ...STATE,
+  crews: [{
+    id: 'c1', name: 'Clubhouse', charter: 'Build the club tier.', projectId: 'p1',
+    createdAt: 1, updatedAt: 1,
+  }],
+  members: [{
+    id: 'm1', crewId: 'c1', roleId: 'builtin-nova', roleName: 'Nova',
+    connectionId: 'claude', model: 'sonnet',
+  }],
+  schedules: [{
+    id: 's1', crewId: 'c1', taskTemplate: 'Audit auth weekly', mode: 'edit', files: [],
+    schedule: 'weekly', enabled: true, nextRunAt: 2_000_000_000_000,
+    lastRunAt: null, lastError: null, createdAt: 1,
+  }],
 }
 
 function mockFetch(state: WorkbenchState = STATE) {
@@ -98,12 +118,12 @@ describe('ProjectsScreen', () => {
     expect(screen.getByRole('option', { name: /Nova/ })).toBeTruthy()
   })
 
-  it('states that runs are read-only', async () => {
+  it('states that analysis context is selected and edits require review', async () => {
     mockFetch()
     render(<ProjectsScreen />)
     await screen.findByText('clubhouse')
-    expect(screen.getAllByText(/read-only/i).length).toBeGreaterThan(0)
-    expect(screen.getByText(/no tools and no filesystem access/i)).toBeTruthy()
+    expect(screen.getByText(/Analysis runs only see the files you select/i)).toBeTruthy()
+    expect(screen.getByText(/nothing is applied automatically/i)).toBeTruthy()
   })
 
   it('renders a completed run output recovered from the server, not local state', async () => {
@@ -162,7 +182,7 @@ describe('ProjectsScreen — edit mode', () => {
     render(<ProjectsScreen />)
     await screen.findByText('clubhouse')
     fireEvent.click(screen.getByRole('button', { name: /^Edit$/ }))
-    expect(screen.getByText(/isolated git worktree/i)).toBeTruthy()
+    expect(screen.getAllByText(/isolated git worktree/i).length).toBeGreaterThan(0)
     expect(screen.getByText(/checkout is untouched/i)).toBeTruthy()
   })
 
@@ -212,5 +232,61 @@ describe('ProjectsScreen — edit mode', () => {
     render(<ProjectsScreen />)
     expect(await screen.findByText(/applied to your checkout/i)).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Apply to my checkout/i })).toBeNull()
+  })
+
+  it('shows standing crew seats and recurring missions for the selected project', async () => {
+    mockFetch(CREW_STATE)
+    render(<ProjectsScreen />)
+    expect(await screen.findByText('Crew automation')).toBeTruthy()
+    expect(screen.getByText(/claude · sonnet/i)).toBeTruthy()
+    expect(screen.getByText('Audit auth weekly')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Start meeting' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Launch mission' })).toBeTruthy()
+  })
+
+  it('dispatches a crew meeting as analysis to every seat', async () => {
+    const fetchMock = mockFetch(CREW_STATE)
+    render(<ProjectsScreen />)
+    await screen.findByText('Crew automation')
+    fireEvent.change(screen.getByLabelText('Crew task'), { target: { value: 'Decide launch readiness' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Start meeting' }))
+    await waitFor(() => {
+      const posted = fetchMock.mock.calls.find(([, init]) =>
+        String((init as RequestInit | undefined)?.body ?? '').includes('"action":"crew-dispatch"'),
+      )
+      const body = String((posted?.[1] as RequestInit).body)
+      expect(body).toContain('"mode":"analyze"')
+      expect(body).toContain('Crew meeting agenda')
+    })
+  })
+
+  it('runs a saved schedule immediately on demand', async () => {
+    const fetchMock = mockFetch(CREW_STATE)
+    render(<ProjectsScreen />)
+    await screen.findByText('Audit auth weekly')
+    fireEvent.click(screen.getByRole('button', { name: 'Run now' }))
+    await waitFor(() => {
+      const posted = fetchMock.mock.calls.find(([, init]) =>
+        String((init as RequestInit | undefined)?.body ?? '').includes('"action":"schedule-run-now"'),
+      )
+      expect(String((posted?.[1] as RequestInit).body)).toContain('"scheduleId":"s1"')
+    })
+  })
+
+  it('creates an edit schedule without auto-applying changes', async () => {
+    const fetchMock = mockFetch(CREW_STATE)
+    render(<ProjectsScreen />)
+    await screen.findByText('Crew automation')
+    fireEvent.change(screen.getByLabelText('Crew task'), { target: { value: 'Fix one scoped issue' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Crew edit mode' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Add schedule' }))
+    await waitFor(() => {
+      const posted = fetchMock.mock.calls.find(([, init]) =>
+        String((init as RequestInit | undefined)?.body ?? '').includes('"action":"schedule"'),
+      )
+      const body = String((posted?.[1] as RequestInit).body)
+      expect(body).toContain('"mode":"edit"')
+      expect(body).not.toContain('apply')
+    })
   })
 })

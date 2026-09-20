@@ -15,6 +15,10 @@
  */
 
 import { spawn } from 'node:child_process'
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { buildSandboxLauncher, SANDBOX_SETUP_FAILURE, wrapSandboxed } from './workbench-sandbox'
 import type { AnalysisInput, AnalysisResult, ConnectionId, WorkbenchConnection } from '../types/workbench'
 
 export const OLLAMA_ENDPOINT = 'http://127.0.0.1:11434'
@@ -190,13 +194,38 @@ instead of guessing.`
 function run(
   command: string,
   args: string[],
-  options: { input?: string; signal?: AbortSignal; timeoutMs?: number; cwd?: string } = {},
+  options: {
+    input?: string
+    signal?: AbortSignal
+    timeoutMs?: number
+    cwd?: string
+    /** Non-empty = sandboxed edit run; the child becomes a process-group leader. */
+    sandboxAllow?: string[]
+    env?: NodeJS.ProcessEnv
+  } = {},
 ): Promise<{ stdout: string; stderr: string; code: number }> {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const sandboxed = (options.sandboxAllow?.length ?? 0) > 0
+    let launch: { command: string; args: string[] }
+    try {
+      launch = sandboxed
+        ? wrapSandboxed(command, args, {
+            launcher: buildSandboxLauncher(),
+            allow: options.sandboxAllow ?? [],
+          })
+        : { command, args }
+    } catch (error) {
+      // Fail closed: never downgrade an edit run to an unconfined one.
+      reject(new Error(`Edit sandbox unavailable: ${(error as Error).message}`))
+      return
+    }
+
+    const child = spawn(launch.command, launch.args, {
       shell: false, // never route user text through a shell
-      env: sanitizeRuntimeEnv(),
+      env: options.env ?? sanitizeRuntimeEnv(),
       cwd: options.cwd,
+      // Own process group so descendants die with the run, not after it.
+      detached: sandboxed,
       stdio: ['pipe', 'pipe', 'pipe'],
     })
 
@@ -204,19 +233,33 @@ function run(
     let stderr = ''
     let settled = false
 
+    /**
+     * Kill the whole group. A CLI that forked a helper must not keep writing
+     * into the worktree after we have captured the diff.
+     */
+    const killTree = () => {
+      try {
+        if (sandboxed && child.pid) process.kill(-child.pid, 'SIGKILL')
+        else child.kill('SIGKILL')
+      } catch (error) {
+        // ESRCH just means it already exited.
+        if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error
+      }
+    }
+
     const timer = setTimeout(() => {
       if (!settled) {
-        child.kill('SIGKILL')
         settled = true
+        killTree()
         reject(new Error(`${command} timed out after ${(options.timeoutMs ?? RUN_TIMEOUT_MS) / 1000}s.`))
       }
     }, options.timeoutMs ?? RUN_TIMEOUT_MS)
 
     const onAbort = () => {
       if (!settled) {
-        child.kill('SIGKILL')
         settled = true
         clearTimeout(timer)
+        killTree()
         reject(new Error('Run cancelled.'))
       }
     }
@@ -239,6 +282,12 @@ function run(
       settled = true
       clearTimeout(timer)
       options.signal?.removeEventListener('abort', onAbort)
+      // Reap any daemonised descendant before the caller reads the diff.
+      if (sandboxed) killTree()
+      if (code === SANDBOX_SETUP_FAILURE && sandboxed) {
+        reject(new Error(`Edit sandbox refused to start: ${stderr.slice(-300) || 'unknown reason'}`))
+        return
+      }
       resolve({ stdout, stderr, code: code ?? 0 })
     })
 
@@ -249,6 +298,27 @@ function run(
       child.stdin.end()
     }
   })
+}
+
+/**
+ * Per-run scratch space. The CLI needs somewhere writable for caches; without
+ * this it would either fail or need a far wider sandbox.
+ */
+function runTemp(): { dir: string; env: NodeJS.ProcessEnv; cleanup: () => void } {
+  const dir = mkdtempSync(join(tmpdir(), 'hermes-run-'))
+  const cache = join(dir, 'cache')
+  mkdirSync(cache, { recursive: true })
+  return {
+    dir,
+    env: {
+      ...sanitizeRuntimeEnv(),
+      TMPDIR: dir,
+      TMP: dir,
+      TEMP: dir,
+      XDG_CACHE_HOME: cache,
+    },
+    cleanup: () => rmSync(dir, { recursive: true, force: true }),
+  }
 }
 
 async function detectHermesCodex(): Promise<WorkbenchConnection> {
@@ -340,17 +410,25 @@ async function executeHermes(input: AnalysisInput): Promise<AnalysisResult> {
     args.splice(5, 0, '--safe-mode')
   }
 
-  const { stdout, stderr, code } = await run('hermes', args, {
-    input: input.prompt,
-    signal: input.signal,
-    cwd: input.workdir,
-    timeoutMs: editing ? EDIT_TIMEOUT_MS : undefined,
-  })
+  const scratch = editing ? runTemp() : null
+  try {
+    const { stdout, stderr, code } = await run('hermes', args, {
+      input: input.prompt,
+      signal: input.signal,
+      cwd: input.workdir,
+      timeoutMs: editing ? EDIT_TIMEOUT_MS : undefined,
+      // Edit runs may only write in their worktree and their own scratch dir.
+      sandboxAllow: editing && input.workdir && scratch ? [input.workdir, scratch.dir] : undefined,
+      env: scratch?.env,
+    })
 
-  if (code !== 0 && !stdout.includes('"type": "result"')) {
-    throw new Error(`Hermes failed (exit ${code}): ${stderr.slice(-400) || 'no error output'}`)
+    if (code !== 0 && !stdout.includes('"type": "result"')) {
+      throw new Error(`Hermes failed (exit ${code}): ${stderr.slice(-400) || 'no error output'}`)
+    }
+    return parseHermesResult(stdout, { allowEmpty: editing })
+  } finally {
+    scratch?.cleanup()
   }
-  return parseHermesResult(stdout, { allowEmpty: editing })
 }
 
 async function executeClaude(input: AnalysisInput): Promise<AnalysisResult> {
@@ -374,16 +452,23 @@ async function executeClaude(input: AnalysisInput): Promise<AnalysisResult> {
   }
   args.push(input.prompt)
 
-  const { stdout, stderr, code } = await run('claude', args, {
-    signal: input.signal,
-    cwd: input.workdir,
-    timeoutMs: editing ? EDIT_TIMEOUT_MS : undefined,
-  })
+  const scratch = editing ? runTemp() : null
+  try {
+    const { stdout, stderr, code } = await run('claude', args, {
+      signal: input.signal,
+      cwd: input.workdir,
+      timeoutMs: editing ? EDIT_TIMEOUT_MS : undefined,
+      sandboxAllow: editing && input.workdir && scratch ? [input.workdir, scratch.dir] : undefined,
+      env: scratch?.env,
+    })
 
-  if (code !== 0 && !stdout.trim().startsWith('{')) {
-    throw new Error(`Claude failed (exit ${code}): ${stderr.slice(-400) || 'no error output'}`)
+    if (code !== 0 && !stdout.trim().startsWith('{')) {
+      throw new Error(`Claude failed (exit ${code}): ${stderr.slice(-400) || 'no error output'}`)
+    }
+    return parseClaudeResult(stdout, { allowEmpty: editing })
+  } finally {
+    scratch?.cleanup()
   }
-  return parseClaudeResult(stdout, { allowEmpty: editing })
 }
 
 async function executeOllama(input: AnalysisInput): Promise<AnalysisResult> {

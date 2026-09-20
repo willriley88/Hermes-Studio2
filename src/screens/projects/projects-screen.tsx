@@ -16,6 +16,7 @@ import type {
   WorkbenchState,
   WorkbenchTask,
 } from '@/types/workbench'
+import { CrewAutomationPanel } from './crew-automation-panel'
 
 const EMPTY: WorkbenchState = {
   projects: [],
@@ -23,6 +24,9 @@ const EMPTY: WorkbenchState = {
   runs: [],
   connections: [],
   roles: [],
+  crews: [],
+  members: [],
+  schedules: [],
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -91,7 +95,22 @@ export function ProjectsScreen() {
         })
         const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>
         if (!response.ok) throw new Error(String(payload.error ?? `Request failed (${response.status})`))
-        setError(null)
+        const failures = Array.isArray(payload.failures)
+          ? payload.failures.filter(
+              (entry): entry is { roleName: string; error: string } =>
+                Boolean(entry) &&
+                typeof entry === 'object' &&
+                typeof (entry as { roleName?: unknown }).roleName === 'string' &&
+                typeof (entry as { error?: unknown }).error === 'string',
+            )
+          : []
+        setError(
+          failures.length
+            ? `Started the available seats, but ${failures.length} failed: ${failures
+                .map((failure) => `${failure.roleName}: ${failure.error}`)
+                .join('; ')}`
+            : null,
+        )
         await refresh()
         return payload
       } catch (caught) {
@@ -183,8 +202,7 @@ export function ProjectsScreen() {
         <div>
           <h1 className="text-xl font-semibold text-zinc-100">Projects</h1>
           <p className="text-xs text-zinc-400">
-            Pick a task, a runtime, and a role — then send a{' '}
-            <span className="text-cyan-400">read-only</span> analysis run.
+            Pick a project, assign a role and runtime, or launch a standing crew mission.
           </p>
         </div>
         <button
@@ -204,9 +222,9 @@ export function ProjectsScreen() {
       ) : null}
 
       <p className="rounded-md border border-zinc-700/60 bg-zinc-900/40 px-3 py-2 text-xs text-zinc-400">
-        Runs are read-only: the model has no tools and no filesystem access — it only sees the files you
-        tick below. Subscription runs draw on your ChatGPT/Claude plan allowance rather than per-token
-        billing. If the server restarts mid-run the run is marked interrupted and never replayed silently.
+        Analysis runs only see the files you select. Edit runs work in isolated git worktrees and stop at a
+        reviewable diff — nothing is applied automatically. Subscription runs use your ChatGPT/Claude plan
+        allowance; Ollama stays local. Interrupted runs are marked and never replayed silently.
       </p>
 
       <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)_320px]">
@@ -562,6 +580,13 @@ export function ProjectsScreen() {
           </ul>
         )}
       </section>
+
+      <CrewAutomationPanel
+        state={state}
+        projectId={selectedProject?.id ?? null}
+        busy={busy}
+        post={post}
+      />
     </div>
   )
 }

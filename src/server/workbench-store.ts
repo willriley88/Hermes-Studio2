@@ -12,11 +12,15 @@ import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type {
   ConnectionId,
+  SchedulePreset,
+  WorkbenchCrew,
+  WorkbenchCrewMember,
   WorkbenchPatchState,
   WorkbenchProject,
   WorkbenchRun,
   WorkbenchRunMode,
   WorkbenchRunStatus,
+  WorkbenchSchedule,
   WorkbenchTask,
   WorkbenchTaskStatus,
 } from '../types/workbench'
@@ -63,6 +67,37 @@ CREATE TABLE IF NOT EXISTS runs (
   finishedAt   INTEGER
 );
 CREATE INDEX IF NOT EXISTS runs_task ON runs(taskId);
+CREATE TABLE IF NOT EXISTS crews (
+  id        TEXT PRIMARY KEY,
+  name      TEXT NOT NULL,
+  charter   TEXT NOT NULL DEFAULT '',
+  projectId TEXT NOT NULL,
+  createdAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS crew_members (
+  id           TEXT PRIMARY KEY,
+  crewId       TEXT NOT NULL,
+  roleId       TEXT NOT NULL,
+  roleName     TEXT NOT NULL,
+  connectionId TEXT NOT NULL,
+  model        TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS schedules (
+  id           TEXT PRIMARY KEY,
+  crewId       TEXT NOT NULL,
+  taskTemplate TEXT NOT NULL,
+  mode         TEXT NOT NULL DEFAULT 'analyze',
+  files        TEXT NOT NULL DEFAULT '[]',
+  schedule     TEXT NOT NULL,
+  enabled      INTEGER NOT NULL DEFAULT 1,
+  nextRunAt    INTEGER NOT NULL,
+  lastRunAt    INTEGER,
+  lastError    TEXT,
+  createdAt    INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_members_crew ON crew_members(crewId);
+CREATE INDEX IF NOT EXISTS idx_schedules_crew ON schedules(crewId);
 `
 
 /** Statuses that mean "this run is not finished". */
@@ -116,6 +151,13 @@ export class WorkbenchStore {
       if (!columns.has(name)) {
         this.db.exec(`ALTER TABLE runs ADD COLUMN ${name} ${definition}`)
       }
+    }
+
+    const scheduleColumns = new Set(
+      (this.db.prepare('PRAGMA table_info(schedules)').all() as { name: string }[]).map((c) => c.name),
+    )
+    if (!scheduleColumns.has('lastError')) {
+      this.db.exec('ALTER TABLE schedules ADD COLUMN lastError TEXT')
     }
   }
 
@@ -196,6 +238,173 @@ export class WorkbenchStore {
     this.db.prepare('UPDATE tasks SET status = ?, updatedAt = ? WHERE id = ?').run(status, Date.now(), id)
   }
 
+  /** Derive a task's state from all of its member runs, not whichever finished last. */
+  private refreshTaskStatus(taskId: string): void {
+    const rows = this.db
+      .prepare('SELECT status FROM runs WHERE taskId = ?')
+      .all(taskId) as Array<{ status: WorkbenchRunStatus }>
+    const hasActive = rows.some((row) => row.status === 'queued' || row.status === 'running')
+    const hasCompleted = rows.some((row) => row.status === 'completed')
+    this.setTaskStatusInternal(taskId, hasActive ? 'running' : hasCompleted ? 'review' : 'ready')
+  }
+
+  // ─── Crews ─────────────────────────────────────────────────────────────────
+
+  createCrew(input: { name: string; charter?: string; projectId: string }): WorkbenchCrew {
+    if (!this.getProject(input.projectId)) throw new Error('Unknown project.')
+    const now = Date.now()
+    const crew: WorkbenchCrew = {
+      id: randomUUID(),
+      name: input.name,
+      charter: input.charter ?? '',
+      projectId: input.projectId,
+      createdAt: now,
+      updatedAt: now,
+    }
+    this.db
+      .prepare(
+        `INSERT INTO crews (id, name, charter, projectId, createdAt, updatedAt)
+         VALUES (@id, @name, @charter, @projectId, @createdAt, @updatedAt)`,
+      )
+      .run(crew)
+    return crew
+  }
+
+  listCrews(): WorkbenchCrew[] {
+    return this.db.prepare('SELECT * FROM crews ORDER BY createdAt ASC').all() as WorkbenchCrew[]
+  }
+
+  getCrew(id: string): WorkbenchCrew | null {
+    return (this.db.prepare('SELECT * FROM crews WHERE id = ?').get(id) as WorkbenchCrew) ?? null
+  }
+
+  updateCrew(id: string, patch: { name?: string; charter?: string }): void {
+    const crew = this.getCrew(id)
+    if (!crew) throw new Error('Unknown crew.')
+    this.db
+      .prepare('UPDATE crews SET name = ?, charter = ?, updatedAt = ? WHERE id = ?')
+      .run(patch.name ?? crew.name, patch.charter ?? crew.charter, Date.now(), id)
+  }
+
+  /** Removing a crew removes its seats and schedules — no orphans left behind. */
+  deleteCrew(id: string): void {
+    this.db.transaction(() => {
+      this.db.prepare('DELETE FROM schedules WHERE crewId = ?').run(id)
+      this.db.prepare('DELETE FROM crew_members WHERE crewId = ?').run(id)
+      this.db.prepare('DELETE FROM crews WHERE id = ?').run(id)
+    })()
+  }
+
+  addCrewMember(
+    crewId: string,
+    input: { roleId: string; roleName: string; connectionId: ConnectionId; model: string },
+  ): WorkbenchCrewMember {
+    if (!this.getCrew(crewId)) throw new Error('Unknown crew.')
+    if (this.listCrewMembers(crewId).length >= 8) {
+      throw new Error('A crew is limited to eight seats.')
+    }
+    if (this.listCrewMembers(crewId).some((member) => member.roleId === input.roleId)) {
+      throw new Error('That role already has a seat in this crew.')
+    }
+    const member: WorkbenchCrewMember = { id: randomUUID(), crewId, ...input }
+    this.db
+      .prepare(
+        `INSERT INTO crew_members (id, crewId, roleId, roleName, connectionId, model)
+         VALUES (@id, @crewId, @roleId, @roleName, @connectionId, @model)`,
+      )
+      .run(member)
+    return member
+  }
+
+  listCrewMembers(crewId: string): WorkbenchCrewMember[] {
+    return this.db
+      .prepare('SELECT * FROM crew_members WHERE crewId = ? ORDER BY rowid ASC')
+      .all(crewId) as WorkbenchCrewMember[]
+  }
+
+  listAllCrewMembers(): WorkbenchCrewMember[] {
+    return this.db.prepare('SELECT * FROM crew_members ORDER BY rowid ASC').all() as WorkbenchCrewMember[]
+  }
+
+  removeCrewMember(id: string): void {
+    this.db.prepare('DELETE FROM crew_members WHERE id = ?').run(id)
+  }
+
+  // ─── Schedules ─────────────────────────────────────────────────────────────
+
+  createSchedule(input: {
+    crewId: string
+    taskTemplate: string
+    mode: WorkbenchRunMode
+    files: string[]
+    schedule: SchedulePreset
+    nextRunAt: number
+  }): WorkbenchSchedule {
+    const row: WorkbenchSchedule = {
+      id: randomUUID(),
+      crewId: input.crewId,
+      taskTemplate: input.taskTemplate,
+      mode: input.mode,
+      files: input.files,
+      schedule: input.schedule,
+      enabled: true,
+      nextRunAt: input.nextRunAt,
+      lastRunAt: null,
+      lastError: null,
+      createdAt: Date.now(),
+    }
+    this.db
+      .prepare(
+        `INSERT INTO schedules (id, crewId, taskTemplate, mode, files, schedule, enabled, nextRunAt, lastRunAt, lastError, createdAt)
+         VALUES (@id, @crewId, @taskTemplate, @mode, @files, @schedule, 1, @nextRunAt, NULL, NULL, @createdAt)`,
+      )
+      .run({ ...row, files: JSON.stringify(row.files) })
+    return row
+  }
+
+  listSchedules(): WorkbenchSchedule[] {
+    const rows = this.db.prepare('SELECT * FROM schedules ORDER BY createdAt ASC').all() as Array<
+      Omit<WorkbenchSchedule, 'files' | 'enabled'> & { files: string; enabled: number }
+    >
+    return rows.map((row) => ({
+      ...row,
+      files: JSON.parse(row.files) as string[],
+      enabled: row.enabled === 1,
+    }))
+  }
+
+  setScheduleEnabled(id: string, enabled: boolean): void {
+    this.db.prepare('UPDATE schedules SET enabled = ? WHERE id = ?').run(enabled ? 1 : 0, id)
+  }
+
+  /**
+   * Atomically advance a schedule only if nobody else has claimed the same due
+   * timestamp. This is the durable lease used by overlapping ticks/processes.
+   */
+  claimSchedule(id: string, expectedNextRunAt: number, ranAt: number, nextRunAt: number): boolean {
+    const result = this.db
+      .prepare(
+        `UPDATE schedules SET lastRunAt = ?, nextRunAt = ?, lastError = NULL
+         WHERE id = ? AND enabled = 1 AND nextRunAt = ?`,
+      )
+      .run(ranAt, nextRunAt, id, expectedNextRunAt)
+    return result.changes === 1
+  }
+
+  setScheduleError(id: string, message: string | null): void {
+    this.db.prepare('UPDATE schedules SET lastError = ? WHERE id = ?').run(message, id)
+  }
+
+  markScheduleRan(id: string, ranAt: number, nextRunAt: number): void {
+    this.db
+      .prepare('UPDATE schedules SET lastRunAt = ?, nextRunAt = ? WHERE id = ?')
+      .run(ranAt, nextRunAt, id)
+  }
+
+  deleteSchedule(id: string): void {
+    this.db.prepare('DELETE FROM schedules WHERE id = ?').run(id)
+  }
+
   // ─── Runs ──────────────────────────────────────────────────────────────────
 
   private hydrate(row: RunRow): WorkbenchRun {
@@ -215,6 +424,15 @@ export class WorkbenchStore {
         `SELECT * FROM runs WHERE taskId = ? AND status IN (${ACTIVE_RUN_STATUSES.map(() => '?').join(',')})`,
       )
       .get(taskId, ...ACTIVE_RUN_STATUSES) as RunRow | undefined
+    return row ? this.hydrate(row) : null
+  }
+
+  activeRunForTaskRole(taskId: string, roleId: string): WorkbenchRun | null {
+    const row = this.db
+      .prepare(
+        `SELECT * FROM runs WHERE taskId = ? AND roleId = ? AND status IN (${ACTIVE_RUN_STATUSES.map(() => '?').join(',')})`,
+      )
+      .get(taskId, roleId, ...ACTIVE_RUN_STATUSES) as RunRow | undefined
     return row ? this.hydrate(row) : null
   }
 
@@ -242,8 +460,8 @@ export class WorkbenchStore {
    */
   createRun(input: CreateRunInput): WorkbenchRun {
     const claim = this.db.transaction((payload: CreateRunInput): WorkbenchRun => {
-      if (this.activeRunForTask(payload.taskId)) {
-        throw new Error('This task already has a run in progress.')
+      if (this.activeRunForTaskRole(payload.taskId, payload.roleId)) {
+        throw new Error('This role already has a run in progress for this task.')
       }
       const run: WorkbenchRun = {
         id: randomUUID(),
@@ -279,6 +497,7 @@ export class WorkbenchStore {
                    @diff, @filesChanged, @patchState, @createdAt, @startedAt, @finishedAt)`,
         )
         .run({ ...run, files: JSON.stringify(run.files) })
+      this.refreshTaskStatus(run.taskId)
       return run
     })
 
@@ -310,7 +529,7 @@ export class WorkbenchStore {
     this.db
       .prepare('UPDATE runs SET status = ?, output = ?, actualModel = ?, finishedAt = ? WHERE id = ?')
       .run('completed', result.output, result.actualModel ?? null, Date.now(), id)
-    this.setTaskStatusInternal(run.taskId, 'review')
+    this.refreshTaskStatus(run.taskId)
   }
 
   failRun(id: string, message: string): void {
@@ -321,7 +540,7 @@ export class WorkbenchStore {
     this.db
       .prepare('UPDATE runs SET status = ?, error = ?, finishedAt = ? WHERE id = ?')
       .run('failed', message, Date.now(), id)
-    this.setTaskStatusInternal(run.taskId, 'ready')
+    this.refreshTaskStatus(run.taskId)
   }
 
   cancelRun(id: string): void {
@@ -332,7 +551,7 @@ export class WorkbenchStore {
     this.db
       .prepare('UPDATE runs SET status = ?, finishedAt = ? WHERE id = ?')
       .run('cancelled', Date.now(), id)
-    this.setTaskStatusInternal(run.taskId, 'ready')
+    this.refreshTaskStatus(run.taskId)
   }
 
   /**
@@ -356,7 +575,7 @@ export class WorkbenchStore {
             Date.now(),
             row.id,
           )
-        this.setTaskStatusInternal(row.taskId, 'ready')
+        this.refreshTaskStatus(row.taskId)
       }
     })
     recover()
@@ -383,6 +602,29 @@ export class WorkbenchStore {
 
   setPatchState(id: string, state: WorkbenchPatchState): void {
     this.db.prepare('UPDATE runs SET patchState = ? WHERE id = ?').run(state, id)
+  }
+
+  /** Delete a crew-created task when dispatch produced no usable run. */
+  deleteTaskIfNoUsableRuns(id: string): boolean {
+    const result = this.db
+      .prepare(
+        `DELETE FROM tasks WHERE id = ? AND NOT EXISTS (
+           SELECT 1 FROM runs WHERE taskId = ? AND status IN ('queued', 'running', 'completed')
+         )`,
+      )
+      .run(id, id)
+    return result.changes === 1
+  }
+
+  hasPendingPatchForProject(projectId: string): boolean {
+    const row = this.db
+      .prepare("SELECT 1 AS yes FROM runs WHERE projectId = ? AND mode = 'edit' AND patchState = 'pending' LIMIT 1")
+      .get(projectId) as { yes: number } | undefined
+    return Boolean(row)
+  }
+
+  clearWorktree(id: string): void {
+    this.db.prepare('UPDATE runs SET worktreePath = NULL, branch = NULL WHERE id = ?').run(id)
   }
 
   /** Every edit run still holding a worktree — used to clean up on shutdown. */

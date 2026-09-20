@@ -62,6 +62,47 @@ export type WorkbenchState = {
   runs: WorkbenchRun[]
   connections: WorkbenchConnection[]
   roles: AgentDefinition[]
+  crews: WorkbenchCrew[]
+  members: WorkbenchCrewMember[]
+  schedules: WorkbenchSchedule[]
+}
+
+/** A standing group of roles bound to one project. */
+export type WorkbenchCrew = {
+  id: string
+  name: string
+  charter: string
+  projectId: string
+  createdAt: number
+  updatedAt: number
+}
+
+/** One seat in a crew: a role paired with the runtime that should run it. */
+export type WorkbenchCrewMember = {
+  id: string
+  crewId: string
+  roleId: string
+  roleName: string
+  connectionId: ConnectionId
+  model: string
+}
+
+export type SchedulePreset = 'hourly' | 'daily' | 'weekly'
+
+/** A recurring crew task. Scheduled edits stop at a pending diff — never auto-applied. */
+export type WorkbenchSchedule = {
+  id: string
+  crewId: string
+  taskTemplate: string
+  mode: WorkbenchRunMode
+  files: string[]
+  schedule: SchedulePreset
+  enabled: boolean
+  nextRunAt: number
+  lastRunAt: number | null
+  /** Last dispatch/configuration problem, persisted so scheduled omissions are visible. */
+  lastError: string | null
+  createdAt: number
 }
 export type AnalysisInput = {
   connectionId: ConnectionId
