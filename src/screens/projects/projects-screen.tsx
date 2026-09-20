@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type {
   ConnectionId,
   WorkbenchRun,
+  WorkbenchRunMode,
   WorkbenchState,
   WorkbenchTask,
 } from '@/types/workbench'
@@ -51,6 +52,7 @@ export function ProjectsScreen() {
   const [candidateFiles, setCandidateFiles] = useState<string[]>([])
   const [selectedFiles, setSelectedFiles] = useState<string[]>([])
   const [taskTitle, setTaskTitle] = useState('')
+  const [mode, setMode] = useState<WorkbenchRunMode>('analyze')
 
   const refresh = useCallback(async () => {
     try {
@@ -155,12 +157,19 @@ export function ProjectsScreen() {
     )
   }
 
+  const canEdit = connectionId === 'chatgpt' || connectionId === 'claude'
+
+  // Ollama can't edit — fall back to analysis rather than offering a lie.
+  useEffect(() => {
+    if (!canEdit && mode === 'edit') setMode('analyze')
+  }, [canEdit, mode])
+
   const canRun =
     Boolean(selectedTask) &&
     Boolean(connection?.available) &&
     Boolean(model) &&
     Boolean(roleId) &&
-    selectedFiles.length > 0 &&
+    (mode === 'edit' || selectedFiles.length > 0) &&
     !runInFlight &&
     !busy
 
@@ -308,6 +317,43 @@ export function ProjectsScreen() {
         <aside className="flex flex-col gap-3 rounded-lg border border-zinc-800 bg-zinc-900/40 p-3">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Dispatch</h2>
 
+          <div className="flex flex-col gap-1 text-xs text-zinc-400">
+            Mode
+            <div className="flex gap-1" role="group" aria-label="Run mode">
+              <button
+                type="button"
+                onClick={() => setMode('analyze')}
+                aria-pressed={mode === 'analyze'}
+                className={`flex-1 rounded-md border px-2 py-1.5 text-xs transition ${
+                  mode === 'analyze'
+                    ? 'border-cyan-500/40 bg-cyan-500/15 text-cyan-300'
+                    : 'border-zinc-700 text-zinc-400 hover:bg-zinc-800/60'
+                }`}
+              >
+                Analyze
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('edit')}
+                disabled={!canEdit}
+                aria-pressed={mode === 'edit'}
+                title={canEdit ? undefined : 'Local models have no tool loop, so they cannot edit files.'}
+                className={`flex-1 rounded-md border px-2 py-1.5 text-xs transition disabled:opacity-40 ${
+                  mode === 'edit'
+                    ? 'border-amber-500/40 bg-amber-500/15 text-amber-300'
+                    : 'border-zinc-700 text-zinc-400 hover:bg-zinc-800/60'
+                }`}
+              >
+                Edit
+              </button>
+            </div>
+          </div>
+          <p className="-mt-1 text-[11px] text-zinc-500">
+            {mode === 'edit'
+              ? 'Edits happen in an isolated git worktree. Your checkout is untouched until you apply the diff.'
+              : 'Read-only. The model only sees the files you tick.'}
+          </p>
+
           <label className="flex flex-col gap-1 text-xs text-zinc-400">
             Runtime
             <select
@@ -360,7 +406,9 @@ export function ProjectsScreen() {
 
           <div className="flex flex-col gap-1 text-xs text-zinc-400">
             <span>
-              Files to analyse ({selectedFiles.length}/8)
+              {mode === 'edit'
+                ? `Files to focus on (optional, ${selectedFiles.length}/8)`
+                : `Files to analyse (${selectedFiles.length}/8)`}
             </span>
             <div className="max-h-48 overflow-auto rounded-md border border-zinc-800 bg-zinc-950/40 p-2">
               {candidateFiles.length === 0 ? (
@@ -400,11 +448,16 @@ export function ProjectsScreen() {
                   model,
                   roleId,
                   files: selectedFiles,
+                  mode,
                 })
               }
-              className="rounded-md border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-300 hover:bg-cyan-500/20 disabled:opacity-40"
+              className={`rounded-md border px-3 py-2 text-sm disabled:opacity-40 ${
+                mode === 'edit'
+                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
+                  : 'border-cyan-500/40 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20'
+              }`}
             >
-              Run analysis
+              {mode === 'edit' ? 'Run edit' : 'Run analysis'}
             </button>
           )}
         </aside>
@@ -438,6 +491,71 @@ export function ProjectsScreen() {
                   <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap text-xs text-zinc-300">
                     {run.output}
                   </pre>
+                ) : null}
+
+                {run.mode === 'edit' && run.diff ? (
+                  <div className="mt-3">
+                    <div className="mb-1 flex flex-wrap items-center gap-2 text-xs">
+                      <span className="text-zinc-400">
+                        {run.filesChanged} file(s) changed
+                      </span>
+                      {run.patchState === 'applied' ? (
+                        <span className="rounded border border-emerald-400/40 bg-emerald-400/10 px-1.5 py-0.5 text-[10px] uppercase text-emerald-400">
+                          applied to your checkout
+                        </span>
+                      ) : null}
+                      {run.patchState === 'discarded' ? (
+                        <span className="rounded border border-zinc-600 px-1.5 py-0.5 text-[10px] uppercase text-zinc-400">
+                          discarded
+                        </span>
+                      ) : null}
+                      {run.patchState === 'pending' ? (
+                        <span className="rounded border border-amber-400/40 bg-amber-400/10 px-1.5 py-0.5 text-[10px] uppercase text-amber-400">
+                          awaiting your review
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <pre className="max-h-80 overflow-auto rounded-md border border-zinc-800 bg-black/40 p-2 text-[11px] leading-relaxed">
+                      {run.diff.split('\n').map((line, index) => (
+                        <div
+                          key={index}
+                          className={
+                            line.startsWith('+') && !line.startsWith('+++')
+                              ? 'text-emerald-400'
+                              : line.startsWith('-') && !line.startsWith('---')
+                                ? 'text-red-400'
+                                : line.startsWith('@@')
+                                  ? 'text-cyan-400'
+                                  : 'text-zinc-500'
+                          }
+                        >
+                          {line || ' '}
+                        </div>
+                      ))}
+                    </pre>
+
+                    {run.patchState === 'pending' ? (
+                      <div className="mt-2 flex gap-2">
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void post({ action: 'apply-patch', runId: run.id })}
+                          className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50"
+                        >
+                          Apply to my checkout
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void post({ action: 'discard-patch', runId: run.id })}
+                          className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+                        >
+                          Discard
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 ) : null}
               </li>
             ))}

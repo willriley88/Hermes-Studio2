@@ -12,8 +12,10 @@ import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type {
   ConnectionId,
+  WorkbenchPatchState,
   WorkbenchProject,
   WorkbenchRun,
+  WorkbenchRunMode,
   WorkbenchRunStatus,
   WorkbenchTask,
   WorkbenchTaskStatus,
@@ -46,10 +48,16 @@ CREATE TABLE IF NOT EXISTS runs (
   roleName     TEXT NOT NULL,
   rolePrompt   TEXT NOT NULL,
   files        TEXT NOT NULL DEFAULT '[]',
+  mode         TEXT NOT NULL DEFAULT 'analyze',
   status       TEXT NOT NULL DEFAULT 'queued',
   output       TEXT NOT NULL DEFAULT '',
   error        TEXT,
   actualModel  TEXT,
+  worktreePath TEXT,
+  branch       TEXT,
+  diff         TEXT NOT NULL DEFAULT '',
+  filesChanged INTEGER NOT NULL DEFAULT 0,
+  patchState   TEXT NOT NULL DEFAULT 'none',
   createdAt    INTEGER NOT NULL,
   startedAt    INTEGER,
   finishedAt   INTEGER
@@ -71,6 +79,7 @@ export type CreateRunInput = {
   roleName: string
   rolePrompt: string
   files: string[]
+  mode?: WorkbenchRunMode
 }
 
 export function defaultStorePath(): string {
@@ -87,6 +96,27 @@ export class WorkbenchStore {
     this.db.pragma('synchronous = FULL')
     this.db.pragma('foreign_keys = ON')
     this.db.exec(SCHEMA)
+    this.migrate()
+  }
+
+  /** Additive migrations for databases created by an earlier version. */
+  private migrate(): void {
+    const columns = new Set(
+      (this.db.prepare('PRAGMA table_info(runs)').all() as { name: string }[]).map((c) => c.name),
+    )
+    const additions: [string, string][] = [
+      ['mode', "TEXT NOT NULL DEFAULT 'analyze'"],
+      ['worktreePath', 'TEXT'],
+      ['branch', 'TEXT'],
+      ['diff', "TEXT NOT NULL DEFAULT ''"],
+      ['filesChanged', 'INTEGER NOT NULL DEFAULT 0'],
+      ['patchState', "TEXT NOT NULL DEFAULT 'none'"],
+    ]
+    for (const [name, definition] of additions) {
+      if (!columns.has(name)) {
+        this.db.exec(`ALTER TABLE runs ADD COLUMN ${name} ${definition}`)
+      }
+    }
   }
 
   close(): void {
@@ -225,10 +255,16 @@ export class WorkbenchStore {
         roleName: payload.roleName,
         rolePrompt: payload.rolePrompt,
         files: payload.files,
+        mode: payload.mode ?? 'analyze',
         status: 'queued',
         output: '',
         error: null,
         actualModel: null,
+        worktreePath: null,
+        branch: null,
+        diff: '',
+        filesChanged: 0,
+        patchState: 'none',
         createdAt: Date.now(),
         startedAt: null,
         finishedAt: null,
@@ -236,9 +272,11 @@ export class WorkbenchStore {
       this.db
         .prepare(
           `INSERT INTO runs (id, taskId, projectId, connectionId, model, roleId, roleName, rolePrompt,
-                             files, status, output, error, actualModel, createdAt, startedAt, finishedAt)
+                             files, mode, status, output, error, actualModel, worktreePath, branch,
+                             diff, filesChanged, patchState, createdAt, startedAt, finishedAt)
            VALUES (@id, @taskId, @projectId, @connectionId, @model, @roleId, @roleName, @rolePrompt,
-                   @files, @status, @output, @error, @actualModel, @createdAt, @startedAt, @finishedAt)`,
+                   @files, @mode, @status, @output, @error, @actualModel, @worktreePath, @branch,
+                   @diff, @filesChanged, @patchState, @createdAt, @startedAt, @finishedAt)`,
         )
         .run({ ...run, files: JSON.stringify(run.files) })
       return run
@@ -327,6 +365,32 @@ export class WorkbenchStore {
 
   appendOutput(id: string, chunk: string): void {
     this.db.prepare('UPDATE runs SET output = output || ? WHERE id = ?').run(chunk, id)
+  }
+
+  /** Record the isolated worktree an edit run is using. */
+  attachWorktree(id: string, worktreePath: string, branch: string): void {
+    this.db
+      .prepare('UPDATE runs SET worktreePath = ?, branch = ? WHERE id = ?')
+      .run(worktreePath, branch, id)
+  }
+
+  /** Store the diff an edit run produced; pending means "awaiting your review". */
+  recordDiff(id: string, patch: string, filesChanged: number): void {
+    this.db
+      .prepare('UPDATE runs SET diff = ?, filesChanged = ?, patchState = ? WHERE id = ?')
+      .run(patch, filesChanged, filesChanged > 0 ? 'pending' : 'none', id)
+  }
+
+  setPatchState(id: string, state: WorkbenchPatchState): void {
+    this.db.prepare('UPDATE runs SET patchState = ? WHERE id = ?').run(state, id)
+  }
+
+  /** Every edit run still holding a worktree — used to clean up on shutdown. */
+  runsWithWorktrees(): WorkbenchRun[] {
+    const rows = this.db
+      .prepare("SELECT * FROM runs WHERE worktreePath IS NOT NULL AND worktreePath != ''")
+      .all() as RunRow[]
+    return rows.map((row) => this.hydrate(row))
   }
 
   // ─── Read model ────────────────────────────────────────────────────────────

@@ -20,6 +20,8 @@ import type { AnalysisInput, AnalysisResult, ConnectionId, WorkbenchConnection }
 export const OLLAMA_ENDPOINT = 'http://127.0.0.1:11434'
 const MAX_OUTPUT_CHARS = 100_000
 const RUN_TIMEOUT_MS = 10 * 60 * 1000
+/** Edit runs iterate over tool calls, so they need considerably longer. */
+const EDIT_TIMEOUT_MS = 25 * 60 * 1000
 
 /** API keys that would let a run bill per-token instead of using a subscription. */
 const BILLING_ENV_KEYS = [
@@ -46,7 +48,10 @@ function cap(text: string): string {
 }
 
 /** Parse `hermes chat --format stream-json` JSONL output. */
-export function parseHermesResult(stdout: string): AnalysisResult {
+export function parseHermesResult(
+  stdout: string,
+  options: { allowEmpty?: boolean } = {},
+): AnalysisResult {
   let result: Record<string, unknown> | null = null
 
   for (const line of stdout.split('\n')) {
@@ -71,7 +76,7 @@ export function parseHermesResult(stdout: string): AnalysisResult {
   }
 
   const text = typeof result.text === 'string' ? result.text.trim() : ''
-  if (!text) throw new Error('Hermes returned an empty response.')
+  if (!text && !options.allowEmpty) throw new Error('Hermes returned an empty response.')
 
   const tokens = (result.tokens ?? {}) as Record<string, unknown>
   const usage: Record<string, number> = {}
@@ -83,7 +88,10 @@ export function parseHermesResult(stdout: string): AnalysisResult {
 }
 
 /** Parse `claude -p --output-format json` output. */
-export function parseClaudeResult(stdout: string): AnalysisResult {
+export function parseClaudeResult(
+  stdout: string,
+  options: { allowEmpty?: boolean } = {},
+): AnalysisResult {
   let payload: Record<string, unknown>
   try {
     payload = JSON.parse(stdout.trim()) as Record<string, unknown>
@@ -98,13 +106,13 @@ export function parseClaudeResult(stdout: string): AnalysisResult {
   }
 
   const denials = Array.isArray(payload.permission_denials) ? payload.permission_denials : []
-  if (denials.length > 0) {
+  if (denials.length > 0 && !options.allowEmpty) {
     throw new Error(
       `Claude was blocked by ${denials.length} permission denial(s); the answer would be incomplete.`,
     )
   }
 
-  if (!text) throw new Error('Claude returned an empty response.')
+  if (!text && !options.allowEmpty) throw new Error('Claude returned an empty response.')
 
   // `total_cost_usd` is deliberately NOT surfaced: on a claude.ai subscription
   // it is list-price accounting, not money actually spent.
@@ -182,12 +190,13 @@ instead of guessing.`
 function run(
   command: string,
   args: string[],
-  options: { input?: string; signal?: AbortSignal; timeoutMs?: number } = {},
+  options: { input?: string; signal?: AbortSignal; timeoutMs?: number; cwd?: string } = {},
 ): Promise<{ stdout: string; stderr: string; code: number }> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       shell: false, // never route user text through a shell
       env: sanitizeRuntimeEnv(),
+      cwd: options.cwd,
       stdio: ['pipe', 'pipe', 'pipe'],
     })
 
@@ -311,51 +320,70 @@ export async function listConnections(): Promise<WorkbenchConnection[]> {
 // ─── Execution ───────────────────────────────────────────────────────────────
 
 async function executeHermes(input: AnalysisInput): Promise<AnalysisResult> {
-  const { stdout, stderr, code } = await run(
-    'hermes',
-    [
-      'chat',
-      '--provider', 'openai-codex',
-      '--model', input.model,
-      '--safe-mode',
-      '--ignore-user-config',
-      '--ignore-rules',
-      '-t', '', // no toolsets
-      '--oneshot',
-      '--max-turns', '1',
-      '--format', 'stream-json',
-      '--query-file', '-', // prompt via stdin; nothing is shell-interpreted
-    ],
-    { input: input.prompt, signal: input.signal },
-  )
+  const editing = input.mode === 'edit' && Boolean(input.workdir)
+  const args = [
+    'chat',
+    '--provider', 'openai-codex',
+    '--model', input.model,
+    '--ignore-user-config',
+    '--ignore-rules',
+    // Edit runs need the filesystem toolset; analysis runs get no tools at all.
+    '-t', editing ? 'hermes-cli' : '',
+    '--oneshot',
+    '--max-turns', editing ? '40' : '1',
+    '--format', 'stream-json',
+    '--query-file', '-', // prompt via stdin; nothing is shell-interpreted
+  ]
+  if (editing && input.workdir) {
+    args.splice(6, 0, '--in', input.workdir)
+  } else {
+    args.splice(5, 0, '--safe-mode')
+  }
+
+  const { stdout, stderr, code } = await run('hermes', args, {
+    input: input.prompt,
+    signal: input.signal,
+    cwd: input.workdir,
+    timeoutMs: editing ? EDIT_TIMEOUT_MS : undefined,
+  })
 
   if (code !== 0 && !stdout.includes('"type": "result"')) {
     throw new Error(`Hermes failed (exit ${code}): ${stderr.slice(-400) || 'no error output'}`)
   }
-  return parseHermesResult(stdout)
+  return parseHermesResult(stdout, { allowEmpty: editing })
 }
 
 async function executeClaude(input: AnalysisInput): Promise<AnalysisResult> {
-  const { stdout, stderr, code } = await run(
-    'claude',
-    [
-      '-p',
-      '--model', input.model,
-      '--tools', '', // no tools
-      '--strict-mcp-config',
-      '--mcp-config', '{"mcpServers":{}}',
-      '--no-session-persistence',
-      '--permission-prompts', 'none',
-      '--output-format', 'json',
-      input.prompt,
-    ],
-    { signal: input.signal },
-  )
+  const editing = input.mode === 'edit' && Boolean(input.workdir)
+  const args = [
+    '-p',
+    '--model', input.model,
+    '--strict-mcp-config',
+    '--mcp-config', '{"mcpServers":{}}',
+    '--no-session-persistence',
+    '--permission-prompts', 'none',
+    '--output-format', 'json',
+  ]
+
+  if (editing) {
+    // acceptEdits lets the model write files but still auto-denies the
+    // genuinely dangerous stuff rather than bypassing every check.
+    args.push('--permission-mode', 'acceptEdits')
+  } else {
+    args.push('--tools', '') // no tools at all
+  }
+  args.push(input.prompt)
+
+  const { stdout, stderr, code } = await run('claude', args, {
+    signal: input.signal,
+    cwd: input.workdir,
+    timeoutMs: editing ? EDIT_TIMEOUT_MS : undefined,
+  })
 
   if (code !== 0 && !stdout.trim().startsWith('{')) {
     throw new Error(`Claude failed (exit ${code}): ${stderr.slice(-400) || 'no error output'}`)
   }
-  return parseClaudeResult(stdout)
+  return parseClaudeResult(stdout, { allowEmpty: editing })
 }
 
 async function executeOllama(input: AnalysisInput): Promise<AnalysisResult> {

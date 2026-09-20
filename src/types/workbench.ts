@@ -27,6 +27,10 @@ export type WorkbenchTask = {
   updatedAt: number
 }
 export type WorkbenchRunStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled' | 'interrupted'
+/** analyze = read-only report. edit = model may modify files in an isolated worktree. */
+export type WorkbenchRunMode = 'analyze' | 'edit'
+/** Lifecycle of the worktree branch produced by an edit run. */
+export type WorkbenchPatchState = 'none' | 'pending' | 'applied' | 'discarded'
 export type WorkbenchRun = {
   id: string
   taskId: string
@@ -37,10 +41,17 @@ export type WorkbenchRun = {
   roleName: string
   rolePrompt: string
   files: string[]
+  mode: WorkbenchRunMode
   status: WorkbenchRunStatus
   output: string
   error: string | null
   actualModel: string | null
+  /** Populated for edit runs: isolated worktree, its branch, and the diff. */
+  worktreePath: string | null
+  branch: string | null
+  diff: string
+  filesChanged: number
+  patchState: WorkbenchPatchState
   createdAt: number
   startedAt: number | null
   finishedAt: number | null
@@ -58,6 +69,9 @@ export type AnalysisInput = {
   prompt: string
   signal: AbortSignal
   onOutput?: (text: string) => void
+  /** Present for edit runs: the isolated worktree the model may modify. */
+  workdir?: string
+  mode?: WorkbenchRunMode
 }
 export type AnalysisResult = {
   output: string

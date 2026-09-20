@@ -8,12 +8,14 @@ import { isAuthenticated } from '../../server/auth-middleware'
 import { requireJsonContentType } from '../../server/rate-limit'
 import { getWorkbenchStore } from '../../server/workbench-store'
 import {
+  applyRunPatch,
   cancelRun,
+  discardRunPatch,
   getWorkbenchState,
   scanProjects,
   startRun,
 } from '../../server/workbench-service'
-import type { ConnectionId, WorkbenchTaskStatus } from '../../types/workbench'
+import type { ConnectionId, WorkbenchRunMode, WorkbenchTaskStatus } from '../../types/workbench'
 
 const CONNECTION_IDS: ConnectionId[] = ['chatgpt', 'claude', 'ollama']
 const USER_SETTABLE_STATUSES: WorkbenchTaskStatus[] = ['backlog', 'ready', 'done']
@@ -111,10 +113,23 @@ export const Route = createFileRoute('/api/workbench')({
                   { status: 400 },
                 )
               }
+              const mode: WorkbenchRunMode = str(body.mode) === 'edit' ? 'edit' : 'analyze'
               return json({
                 ok: true,
-                run: await startRun({ taskId, connectionId, model, roleId, files }),
+                run: await startRun({ taskId, connectionId, model, roleId, files, mode }),
               })
+            }
+
+            case 'apply-patch': {
+              const runId = str(body.runId)
+              if (!runId) return json({ error: 'runId is required' }, { status: 400 })
+              return json({ ok: true, run: applyRunPatch(runId) })
+            }
+
+            case 'discard-patch': {
+              const runId = str(body.runId)
+              if (!runId) return json({ error: 'runId is required' }, { status: 400 })
+              return json({ ok: true, run: discardRunPatch(runId) })
             }
 
             case 'cancel': {

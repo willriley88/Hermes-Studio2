@@ -19,8 +19,11 @@ const STATE: WorkbenchState = {
     {
       id: 'r1', taskId: 't1', projectId: 'p1', connectionId: 'claude', model: 'haiku',
       roleId: 'builtin-nova', roleName: 'Nova', rolePrompt: 'You are Nova.',
-      files: ['app/login.tsx'], status: 'completed', output: 'Found a logged verification code.',
-      error: null, actualModel: 'claude-haiku-4-5', createdAt: 5, startedAt: 6, finishedAt: 7,
+      files: ['app/login.tsx'], mode: 'analyze', status: 'completed',
+      output: 'Found a logged verification code.',
+      error: null, actualModel: 'claude-haiku-4-5',
+      worktreePath: null, branch: null, diff: '', filesChanged: 0, patchState: 'none',
+      createdAt: 5, startedAt: 6, finishedAt: 7,
     },
   ],
   connections: [
@@ -142,5 +145,72 @@ describe('ProjectsScreen', () => {
       )
       expect(String((posted?.[1] as RequestInit).body)).toContain('"action":"scan"')
     })
+  })
+})
+
+describe('ProjectsScreen — edit mode', () => {
+  it('offers an edit mode alongside analysis', async () => {
+    mockFetch()
+    render(<ProjectsScreen />)
+    await screen.findByText('clubhouse')
+    expect(screen.getByRole('button', { name: /^Edit$/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Analyze$/ })).toBeTruthy()
+  })
+
+  it('promises the checkout is untouched until the diff is applied', async () => {
+    mockFetch()
+    render(<ProjectsScreen />)
+    await screen.findByText('clubhouse')
+    fireEvent.click(screen.getByRole('button', { name: /^Edit$/ }))
+    expect(screen.getByText(/isolated git worktree/i)).toBeTruthy()
+    expect(screen.getByText(/checkout is untouched/i)).toBeTruthy()
+  })
+
+  it('sends mode=edit when dispatching an edit run', async () => {
+    const fetchMock = mockFetch()
+    render(<ProjectsScreen />)
+    await screen.findByText('clubhouse')
+    fireEvent.click(screen.getByRole('button', { name: /^Edit$/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Run edit/i }))
+    await waitFor(() => {
+      const posted = fetchMock.mock.calls.find(([, init]) =>
+        String((init as RequestInit | undefined)?.body ?? '').includes('"action":"run"'),
+      )
+      expect(String((posted?.[1] as RequestInit).body)).toContain('"mode":"edit"')
+    })
+  })
+
+  it('renders the diff with apply and discard controls when a patch is pending', async () => {
+    mockFetch({
+      ...STATE,
+      runs: [
+        {
+          ...STATE.runs[0], id: 'r9', mode: 'edit', status: 'completed',
+          output: 'Fixed the adder.', filesChanged: 1, patchState: 'pending',
+          worktreePath: '/tmp/wt', branch: 'hermes/run-r9',
+          diff: 'diff --git a/math.js b/math.js\n@@ -1 +1 @@\n-a - b\n+a + b\n',
+        },
+      ],
+    })
+    render(<ProjectsScreen />)
+    expect(await screen.findByText(/awaiting your review/i)).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Apply to my checkout/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Discard/i })).toBeTruthy()
+  })
+
+  it('does not offer apply once a patch has been applied', async () => {
+    mockFetch({
+      ...STATE,
+      runs: [
+        {
+          ...STATE.runs[0], id: 'r10', mode: 'edit', status: 'completed',
+          filesChanged: 1, patchState: 'applied',
+          diff: 'diff --git a/math.js b/math.js\n+a + b\n',
+        },
+      ],
+    })
+    render(<ProjectsScreen />)
+    expect(await screen.findByText(/applied to your checkout/i)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Apply to my checkout/i })).toBeNull()
   })
 })
