@@ -168,6 +168,35 @@ describe('parseClaudeResult (Claude CLI, claude.ai subscription)', () => {
   it('rejects malformed JSON rather than returning raw stdout', () => {
     expect(() => parseClaudeResult('not json at all')).toThrow(/parse/i)
   })
+
+  it('never lets an edit run hide a blocked tool call behind an empty diff', () => {
+    // allowEmpty is set for edit runs (the diff is the deliverable), so the
+    // denial cannot throw — but it must still reach the operator, or a run that
+    // was refused write access reads as "the agent found nothing to change".
+    const denied = JSON.stringify({
+      is_error: false,
+      result: '',
+      permission_denials: [{ tool_name: 'Edit' }, { tool_name: 'Bash' }],
+    })
+    const parsed = parseClaudeResult(denied, { allowEmpty: true })
+    expect(parsed.output).toMatch(/2 permission denial\(s\)/i)
+    expect(parsed.output).toMatch(/Edit, Bash/)
+  })
+
+  it('keeps the model answer when an edit run was only partially blocked', () => {
+    const partial = JSON.stringify({
+      is_error: false,
+      result: 'I renamed the helper.',
+      permission_denials: [{ tool_name: 'Bash' }],
+    })
+    const parsed = parseClaudeResult(partial, { allowEmpty: true })
+    expect(parsed.output).toContain('I renamed the helper.')
+    expect(parsed.output).toMatch(/1 permission denial\(s\): Bash/)
+  })
+
+  it('adds no denial notice to a clean run', () => {
+    expect(parseClaudeResult(REAL, { allowEmpty: true }).output).toBe('claude_runtime_ok')
+  })
 })
 
 describe('parseOllamaResult (local models)', () => {

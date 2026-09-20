@@ -2,6 +2,7 @@ import { Card } from '@/components/ds/card'
 import { StatusBadge } from '@/components/ds/status-badge'
 import type { HermesTask, TaskPriority } from '@/types/task'
 import type { Status } from '@/components/ds/status-badge'
+import { isWorkbenchBoardTask } from '@/lib/workbench-task-adapter'
 
 const PRIORITY_STATUS: Record<TaskPriority, Status> = {
   high: 'error',
@@ -22,12 +23,14 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, onEdit, onDragStart }: TaskCardProps) {
+  const projectTask = isWorkbenchBoardTask(task)
   return (
     <div
-      draggable
+      draggable={!projectTask}
       onDragStart={(e) => onDragStart(e, task.id)}
       onClick={() => onEdit(task)}
-      style={{ cursor: 'grab', borderColor: 'var(--theme-border)' }}
+      title={projectTask ? 'Open this task in Projects to review crew results' : undefined}
+      style={{ cursor: projectTask ? 'pointer' : 'grab', borderColor: 'var(--theme-border)' }}
     >
       <Card
         className="hover:border-[var(--theme-accent-border)] transition-colors"
@@ -78,6 +81,12 @@ export function TaskCard({ task, onEdit, onDragStart }: TaskCardProps) {
               </span>
             )}
           </div>
+
+          {projectTask ? (
+            <span className="text-[11px]" style={{ color: 'var(--theme-accent)' }}>
+              Open project review →
+            </span>
+          ) : null}
 
           {/* Tags */}
           {task.tags.length > 0 && (

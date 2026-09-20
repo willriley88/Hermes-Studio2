@@ -132,6 +132,51 @@ describe('ProjectsScreen', () => {
     expect(await screen.findByText(/Found a logged verification code/)).toBeTruthy()
   })
 
+  it('reviews only the runs attached to the selected task', async () => {
+    mockFetch({
+      ...STATE,
+      tasks: [
+        { ...STATE.tasks[0], status: 'review' },
+        {
+          ...STATE.tasks[0], id: 't2', title: 'Review member profile',
+          status: 'review', createdAt: 2, updatedAt: 2,
+        },
+      ],
+      runs: [
+        STATE.runs[0],
+        {
+          ...STATE.runs[0], id: 'r2', taskId: 't2',
+          output: 'The profile result belongs only to task two.',
+        },
+      ],
+    })
+    render(<ProjectsScreen />)
+
+    expect(await screen.findByText(/Found a logged verification code/)).toBeTruthy()
+    expect(screen.queryByText(/profile result belongs only to task two/i)).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: /Review member profile/i }))
+    expect(await screen.findByText(/profile result belongs only to task two/i)).toBeTruthy()
+    expect(screen.queryByText(/Found a logged verification code/)).toBeNull()
+  })
+
+  it('lets the user accept a reviewed task as done', async () => {
+    const fetchMock = mockFetch({
+      ...STATE,
+      tasks: [{ ...STATE.tasks[0], status: 'review' }],
+    })
+    render(<ProjectsScreen />)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Mark done/i }))
+    await waitFor(() => {
+      const posted = fetchMock.mock.calls.find(([, init]) =>
+        String((init as RequestInit | undefined)?.body ?? '').includes('"action":"task-status"'),
+      )
+      expect(String((posted?.[1] as RequestInit).body)).toContain('"status":"done"')
+      expect(String((posted?.[1] as RequestInit).body)).toContain('"taskId":"t1"')
+    })
+  })
+
   it('surfaces an interrupted run honestly rather than as a success', async () => {
     const interrupted: WorkbenchState = {
       ...STATE,

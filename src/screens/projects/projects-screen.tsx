@@ -8,7 +8,7 @@
  * Runs are read-only: the model sees only the files selected here.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   ConnectionId,
   WorkbenchRun,
@@ -42,14 +42,19 @@ function isActive(run: WorkbenchRun): boolean {
   return run.status === 'queued' || run.status === 'running'
 }
 
-export function ProjectsScreen() {
+type ProjectsScreenProps = {
+  initialProjectId?: string
+  initialTaskId?: string
+}
+
+export function ProjectsScreen({ initialProjectId, initialTaskId }: ProjectsScreenProps = {}) {
   const [state, setState] = useState<WorkbenchState>(EMPTY)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const [projectId, setProjectId] = useState<string | null>(null)
-  const [taskId, setTaskId] = useState<string | null>(null)
+  const [projectId, setProjectId] = useState<string | null>(initialProjectId ?? null)
+  const [taskId, setTaskId] = useState<string | null>(initialTaskId ?? null)
   const [connectionId, setConnectionId] = useState<ConnectionId>('claude')
   const [model, setModel] = useState('')
   const [roleId, setRoleId] = useState('')
@@ -57,6 +62,7 @@ export function ProjectsScreen() {
   const [selectedFiles, setSelectedFiles] = useState<string[]>([])
   const [taskTitle, setTaskTitle] = useState('')
   const [mode, setMode] = useState<WorkbenchRunMode>('analyze')
+  const reviewRef = useRef<HTMLElement | null>(null)
 
   const refresh = useCallback(async () => {
     try {
@@ -165,6 +171,14 @@ export function ProjectsScreen() {
 
   const taskRuns = state.runs.filter((run) => run.taskId === selectedTask?.id)
   const runInFlight = taskRuns.find(isActive) ?? null
+
+  useEffect(() => {
+    if (!initialTaskId || selectedTask?.id !== initialTaskId || loading) return
+    const frame = window.requestAnimationFrame(() =>
+      reviewRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' }),
+    )
+    return () => window.cancelAnimationFrame(frame)
+  }, [initialTaskId, loading, selectedTask?.id])
 
   const toggleFile = (path: string) => {
     setSelectedFiles((current) =>
@@ -301,7 +315,12 @@ export function ProjectsScreen() {
                   <li key={task.id}>
                     <button
                       type="button"
-                      onClick={() => setTaskId(task.id)}
+                      onClick={() => {
+                        setTaskId(task.id)
+                        window.requestAnimationFrame(() =>
+                          reviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+                        )
+                      }}
                       className={`w-full rounded-md border px-3 py-2 text-left transition ${
                         selectedTask?.id === task.id
                           ? 'border-cyan-500/40 bg-cyan-500/10'
@@ -321,6 +340,11 @@ export function ProjectsScreen() {
                           }`}
                         >
                           {latest.status} · {latest.roleName} · {latest.model}
+                        </span>
+                      ) : null}
+                      {runs.length > 0 ? (
+                        <span className="mt-1 block text-[11px] text-cyan-400">
+                          Review {runs.length} result{runs.length === 1 ? '' : 's'} →
                         </span>
                       ) : null}
                     </button>
@@ -481,14 +505,50 @@ export function ProjectsScreen() {
         </aside>
       </div>
 
-      {/* Run history */}
-      <section className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3">
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">Runs</h2>
-        {state.runs.length === 0 ? (
-          <p className="text-xs text-zinc-500">No runs yet.</p>
+      {/* Selected task review */}
+      <section ref={reviewRef} className="scroll-mt-4 rounded-lg border border-zinc-800 bg-zinc-900/40 p-3">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Task review</h2>
+            <p className="mt-1 text-sm text-zinc-200">
+              {selectedTask?.title ?? 'Select a task to review its results'}
+            </p>
+          </div>
+          {selectedTask?.status === 'review' ? (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void post({ action: 'task-status', taskId: selectedTask.id, status: 'ready' })}
+                className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+              >
+                Return to ready
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void post({ action: 'task-status', taskId: selectedTask.id, status: 'done' })}
+                className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50"
+              >
+                Mark done
+              </button>
+            </div>
+          ) : selectedTask?.status === 'done' ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void post({ action: 'task-status', taskId: selectedTask.id, status: 'ready' })}
+              className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+            >
+              Reopen task
+            </button>
+          ) : null}
+        </div>
+        {taskRuns.length === 0 ? (
+          <p className="text-xs text-zinc-500">No runs for this task yet.</p>
         ) : (
           <ul className="flex flex-col gap-3">
-            {state.runs.map((run) => (
+            {taskRuns.map((run) => (
               <li key={run.id} className="rounded-md border border-zinc-800 bg-zinc-950/40 p-3">
                 <div className="flex flex-wrap items-center gap-2 text-xs">
                   <span

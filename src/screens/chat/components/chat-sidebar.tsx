@@ -528,6 +528,7 @@ function ChatSidebarComponent({
   const isFilesActive = pathname === '/files'
   const isTerminalActive = pathname === '/terminal'
   const isJobsActive = pathname === '/jobs'
+  const isProjectsActive = pathname === '/projects'
   const isMemoryActive = pathname === '/memory'
   const isCrewsActive = pathname === '/crews' || pathname.startsWith('/crews/')
   const isConductorActive = pathname === '/conductor'
@@ -778,6 +779,13 @@ function ChatSidebarComponent({
       icon: Clock01Icon,
       label: 'Jobs',
       active: isJobsActive,
+    },
+    {
+      kind: 'link',
+      to: '/projects',
+      icon: File01Icon,
+      label: 'Projects',
+      active: isProjectsActive,
     },
     {
       kind: 'link',

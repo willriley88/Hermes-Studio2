@@ -102,6 +102,31 @@ export function parseHermesResult(
   return { output: cap(text), usage }
 }
 
+/**
+ * Render blocked tool calls as an operator-visible notice.
+ *
+ * Claude reports denials as objects carrying `tool_name`; older/partial shapes
+ * are tolerated so an unexpected payload downgrades the detail instead of
+ * hiding the fact that something was blocked.
+ */
+function describeDenials(denials: unknown[]): string {
+  if (denials.length === 0) return ''
+  const tools = [
+    ...new Set(
+      denials
+        .map((denial) => {
+          if (typeof denial === 'string') return denial
+          const record = denial as Record<string, unknown> | null
+          const name = record?.tool_name ?? record?.toolName ?? record?.tool
+          return typeof name === 'string' ? name : ''
+        })
+        .filter(Boolean),
+    ),
+  ]
+  const detail = tools.length > 0 ? `: ${tools.join(', ')}` : ''
+  return `[${denials.length} permission denial(s)${detail} — the agent was blocked from at least one tool call, so this result may be incomplete.]`
+}
+
 /** Parse `claude -p --output-format json` output. */
 export function parseClaudeResult(
   stdout: string,
@@ -129,6 +154,12 @@ export function parseClaudeResult(
 
   if (!text && !options.allowEmpty) throw new Error('Claude returned an empty response.')
 
+  // Edit runs tolerate empty text (the diff is the deliverable), but a blocked
+  // tool call must never vanish: a run denied the right to write would
+  // otherwise finish `completed` with no diff and read as an agent that simply
+  // found nothing to change.
+  const notice = describeDenials(denials)
+
   // `total_cost_usd` is deliberately NOT surfaced: on a claude.ai subscription
   // it is list-price accounting, not money actually spent.
   const usage: Record<string, number> = {}
@@ -139,7 +170,8 @@ export function parseClaudeResult(
   const modelUsage = (payload.modelUsage ?? {}) as Record<string, unknown>
   const actualModel = Object.keys(modelUsage)[0]
 
-  return { output: cap(text), actualModel, usage }
+  const output = notice ? [text, notice].filter(Boolean).join('\n\n') : text
+  return { output: cap(output), actualModel, usage }
 }
 
 /** Parse a local Ollama /api/generate response. */

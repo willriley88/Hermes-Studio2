@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Add01Icon } from '@hugeicons/core-free-icons'
 import { StatusBadge } from '@/components/ds/status-badge'
@@ -14,18 +15,45 @@ import {
 } from '@/lib/tasks-api'
 import type { HermesTask, CreateTaskInput, TaskColumn as TaskColumnType } from '@/types/task'
 import { TASK_COLUMNS } from '@/types/task'
+import type { WorkbenchState } from '@/types/workbench'
+import {
+  isWorkbenchBoardTask,
+  mapWorkbenchTasksToBoard,
+  workbenchTaskId,
+} from '@/lib/workbench-task-adapter'
+
+type TaskBoardData = {
+  tasks: HermesTask[]
+  workbench: WorkbenchState | null
+}
+
+async function fetchTaskBoard(): Promise<TaskBoardData> {
+  const [tasks, workbenchResponse] = await Promise.all([
+    fetchTasks(),
+    fetch('/api/workbench').catch(() => null),
+  ])
+  const workbench = workbenchResponse?.ok
+    ? ((await workbenchResponse.json()) as WorkbenchState)
+    : null
+  return {
+    tasks: workbench ? [...tasks, ...mapWorkbenchTasksToBoard(workbench)] : tasks,
+    workbench,
+  }
+}
 
 export function TasksScreen() {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<HermesTask | null>(null)
   const [dragTaskId, setDragTaskId] = useState<string | null>(null)
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => fetchTasks(),
+    queryFn: fetchTaskBoard,
     refetchInterval: 3_000,
   })
+  const tasks = data?.tasks ?? []
 
   const createMutation = useMutation({
     mutationFn: apiCreateTask,
@@ -57,11 +85,20 @@ export function TasksScreen() {
   )
 
   const handleEdit = useCallback((task: HermesTask) => {
+    if (isWorkbenchBoardTask(task)) {
+      const taskId = workbenchTaskId(task)
+      const projectId = data?.workbench?.tasks.find((entry) => entry.id === taskId)?.projectId
+      if (taskId && projectId) {
+        void navigate({ to: '/projects', search: { projectId, taskId } })
+      }
+      return
+    }
     setEditingTask(task)
     setDialogOpen(true)
-  }, [])
+  }, [data?.workbench?.tasks, navigate])
 
   const handleDragStart = useCallback((_e: React.DragEvent, taskId: string) => {
+    if (taskId.startsWith('workbench:')) return
     setDragTaskId(taskId)
   }, [])
 
