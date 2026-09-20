@@ -76,7 +76,18 @@ export function parseHermesResult(
 
   const exitCode = typeof result.exit_code === 'number' ? result.exit_code : 0
   if (exitCode !== 0) {
-    throw new Error(`Hermes exited with exit code ${exitCode} — the run failed.`)
+    // The `error`/`text` fields carry the actual cause (rate limits, auth
+    // expiry, provider outages). A bare "exit code 1" sends you hunting a
+    // phantom bug in your own code.
+    const reason =
+      (typeof result.error === 'string' && result.error.trim()) ||
+      (typeof result.text === 'string' && result.text.trim()) ||
+      ''
+    throw new Error(
+      reason
+        ? `Hermes failed (exit ${exitCode}): ${reason.slice(0, 400)}`
+        : `Hermes exited with exit code ${exitCode} — the run failed.`,
+    )
   }
 
   const text = typeof result.text === 'string' ? result.text.trim() : ''
@@ -191,16 +202,16 @@ instead of guessing.`
 
 // ─── Connection discovery ────────────────────────────────────────────────────
 
-function run(
+export function run(
   command: string,
-  args: string[],
+  args: Array<string>,
   options: {
     input?: string
     signal?: AbortSignal
     timeoutMs?: number
     cwd?: string
     /** Non-empty = sandboxed edit run; the child becomes a process-group leader. */
-    sandboxAllow?: string[]
+    sandboxAllow?: Array<string>
     env?: NodeJS.ProcessEnv
   } = {},
 ): Promise<{ stdout: string; stderr: string; code: number }> {
@@ -277,6 +288,14 @@ function run(
       clearTimeout(timer)
       reject(error)
     })
+    child.stdin.on('error', (error) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      options.signal?.removeEventListener('abort', onAbort)
+      killTree()
+      reject(new Error(`${command} stdin failed: ${error.message}`))
+    })
     child.on('close', (code) => {
       if (settled) return
       settled = true
@@ -321,12 +340,16 @@ function runTemp(): { dir: string; env: NodeJS.ProcessEnv; cleanup: () => void }
   }
 }
 
+// Keep this to slugs proven to work through the ChatGPT-account OAuth route.
+// `gpt-5.6-codex` exists elsewhere but the subscription endpoint rejects it.
+export const CHATGPT_MODELS = ['gpt-5.6-sol']
+
 async function detectHermesCodex(): Promise<WorkbenchConnection> {
   const base = {
     id: 'chatgpt' as const,
     name: 'ChatGPT (Codex)',
     billing: 'subscription' as const,
-    models: ['gpt-5.6-sol', 'gpt-5.6-codex'],
+    models: CHATGPT_MODELS,
   }
   try {
     const { stdout, code } = await run('hermes', ['auth', 'list'], { timeoutMs: 20_000 })
@@ -389,26 +412,79 @@ export async function listConnections(): Promise<WorkbenchConnection[]> {
 
 // ─── Execution ───────────────────────────────────────────────────────────────
 
-async function executeHermes(input: AnalysisInput): Promise<AnalysisResult> {
-  const editing = input.mode === 'edit' && Boolean(input.workdir)
+/**
+ * Build Claude CLI args.
+ *
+ * The prompt goes on STDIN, never argv. `--tools`, `--allowed-tools` and
+ * `--disallowed-tools` are all variadic (`<tools...>`), so a positional prompt
+ * following one of them is swallowed as a flag value and the CLI dies with
+ * "Input must be provided either through stdin or as a prompt argument".
+ */
+export function buildClaudeArgs(input: {
+  model: string
+  prompt: string
+  editing: boolean
+}): { args: Array<string>; stdin: string } {
   const args = [
+    '-p',
+    '--model', input.model,
+    '--strict-mcp-config',
+    '--mcp-config', '{"mcpServers":{}}',
+    '--no-session-persistence',
+    '--permission-prompts', 'none',
+    '--output-format', 'json',
+  ]
+
+  if (input.editing) {
+    // acceptEdits lets the model write files but still auto-denies the
+    // genuinely dangerous stuff rather than bypassing every check.
+    args.push('--permission-mode', 'acceptEdits')
+  } else {
+    // Documented: "" disables all built-in tools. Safe as the LAST flag
+    // because the prompt is delivered on stdin.
+    args.push('--tools', '')
+  }
+
+  return { args, stdin: input.prompt }
+}
+
+/** Build Hermes CLI args. The prompt always arrives via `--query-file -`. */
+export function buildHermesArgs(input: {
+  model: string
+  editing: boolean
+  workdir?: string
+}): Array<string> {
+  const editing = input.editing && Boolean(input.workdir)
+
+  // Edit runs get the real toolset and the isolated worktree. Analysis runs
+  // use safe mode (plugins disabled) plus the built-in `context_engine`
+  // toolset, whose base definition is empty. The real CLI probe must return
+  // NO_TOOLS before this selection changes.
+  const toolArgs = editing
+    ? ['-t', 'hermes-cli', '--in', input.workdir as string]
+    : ['--safe-mode', '-t', 'context_engine']
+
+  return [
     'chat',
     '--provider', 'openai-codex',
     '--model', input.model,
     '--ignore-user-config',
     '--ignore-rules',
-    // Edit runs need the filesystem toolset; analysis runs get no tools at all.
-    '-t', editing ? 'hermes-cli' : '',
+    ...toolArgs,
     '--oneshot',
     '--max-turns', editing ? '40' : '1',
     '--format', 'stream-json',
     '--query-file', '-', // prompt via stdin; nothing is shell-interpreted
   ]
-  if (editing && input.workdir) {
-    args.splice(6, 0, '--in', input.workdir)
-  } else {
-    args.splice(5, 0, '--safe-mode')
-  }
+}
+
+async function executeHermes(input: AnalysisInput): Promise<AnalysisResult> {
+  const editing = input.mode === 'edit' && Boolean(input.workdir)
+  const args = buildHermesArgs({
+    model: input.model,
+    editing,
+    workdir: input.workdir,
+  })
 
   const scratch = editing ? runTemp() : null
   try {
@@ -433,28 +509,16 @@ async function executeHermes(input: AnalysisInput): Promise<AnalysisResult> {
 
 async function executeClaude(input: AnalysisInput): Promise<AnalysisResult> {
   const editing = input.mode === 'edit' && Boolean(input.workdir)
-  const args = [
-    '-p',
-    '--model', input.model,
-    '--strict-mcp-config',
-    '--mcp-config', '{"mcpServers":{}}',
-    '--no-session-persistence',
-    '--permission-prompts', 'none',
-    '--output-format', 'json',
-  ]
-
-  if (editing) {
-    // acceptEdits lets the model write files but still auto-denies the
-    // genuinely dangerous stuff rather than bypassing every check.
-    args.push('--permission-mode', 'acceptEdits')
-  } else {
-    args.push('--tools', '') // no tools at all
-  }
-  args.push(input.prompt)
+  const { args, stdin } = buildClaudeArgs({
+    model: input.model,
+    prompt: input.prompt,
+    editing,
+  })
 
   const scratch = editing ? runTemp() : null
   try {
     const { stdout, stderr, code } = await run('claude', args, {
+      input: stdin, // prompt on stdin — argv would be eaten by variadic --tools
       signal: input.signal,
       cwd: input.workdir,
       timeoutMs: editing ? EDIT_TIMEOUT_MS : undefined,
@@ -471,6 +535,11 @@ async function executeClaude(input: AnalysisInput): Promise<AnalysisResult> {
   }
 }
 
+export function formatOllamaHttpError(status: number, body: string): string {
+  const detail = body.trim().slice(0, 400)
+  return `Local Ollama returned HTTP ${status}${detail ? `: ${detail}` : '.'}`
+}
+
 async function executeOllama(input: AnalysisInput): Promise<AnalysisResult> {
   const response = await fetch(`${OLLAMA_ENDPOINT}/api/generate`, {
     method: 'POST',
@@ -485,7 +554,7 @@ async function executeOllama(input: AnalysisInput): Promise<AnalysisResult> {
   })
 
   if (!response.ok) {
-    throw new Error(`Local Ollama returned HTTP ${response.status}.`)
+    throw new Error(formatOllamaHttpError(response.status, await response.text()))
   }
   return parseOllamaResult((await response.json()) as Record<string, unknown>)
 }

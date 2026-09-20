@@ -1,14 +1,83 @@
 import { describe, expect, it } from 'vitest'
 import {
+  CHATGPT_MODELS,
   OLLAMA_ENDPOINT,
   buildAnalysisPrompt,
+  buildClaudeArgs,
+  buildHermesArgs,
+  formatOllamaHttpError,
   parseClaudeResult,
   parseHermesResult,
   parseOllamaResult,
+  run,
   sanitizeRuntimeEnv,
 } from '../server/workbench-runtime'
 
 // Fixtures below are captured verbatim from the real CLIs on this machine.
+
+describe('CLI argument construction', () => {
+  /**
+   * Regression: `--tools` is VARIADIC. `--tools '' <prompt>` made the CLI treat
+   * the prompt as a value of --tools, so it exited 1 with "Input must be
+   * provided either through stdin or as a prompt argument". This killed every
+   * Claude seat in a crew dispatch while unit tests stayed green.
+   */
+  it('never passes the Claude prompt as a positional after a variadic flag', () => {
+    const { args, stdin } = buildClaudeArgs({ model: 'haiku', prompt: 'ANALYSE THIS', editing: false })
+    expect(stdin).toBe('ANALYSE THIS')
+    expect(args).not.toContain('ANALYSE THIS')
+    const toolsIndex = args.indexOf('--tools')
+    if (toolsIndex !== -1) {
+      expect(args[toolsIndex + 1]).not.toBe('ANALYSE THIS')
+    }
+  })
+
+  it('disables Claude tools for analysis but keeps them for edit runs', () => {
+    const analyze = buildClaudeArgs({ model: 'haiku', prompt: 'p', editing: false })
+    const edit = buildClaudeArgs({ model: 'sonnet', prompt: 'p', editing: true })
+    // `--tools ""` is the documented way to disable every built-in tool.
+    expect(analyze.args[analyze.args.indexOf('--tools') + 1]).toBe('')
+    expect(edit.args).toContain('--permission-mode')
+    expect(edit.args).toContain('acceptEdits')
+    expect(edit.args).not.toContain('--tools')
+  })
+
+  it('pins Hermes analysis runs to a verified empty toolset', () => {
+    const analyze = buildHermesArgs({ model: 'gpt-5.6-sol', editing: false })
+    expect(analyze[analyze.indexOf('-t') + 1]).toBe('context_engine')
+    expect(analyze).toContain('--safe-mode')
+    // Prompt always arrives on stdin, never as argv.
+    expect(analyze).toContain('--query-file')
+    expect(analyze[analyze.indexOf('--query-file') + 1]).toBe('-')
+  })
+
+  it('gives Hermes edit runs the real toolset and the worktree', () => {
+    const edit = buildHermesArgs({ model: 'gpt-5.6-sol', editing: true, workdir: '/tmp/wt' })
+    expect(edit[edit.indexOf('-t') + 1]).toBe('hermes-cli')
+    expect(edit[edit.indexOf('--in') + 1]).toBe('/tmp/wt')
+    expect(edit).not.toContain('--safe-mode')
+  })
+})
+
+describe('runtime process input', () => {
+  it('rejects instead of crashing when a child closes stdin early', async () => {
+    const input = 'x'.repeat(8 * 1024 * 1024)
+    await expect(
+      run(process.execPath, ['-e', 'process.stdin.destroy(); setTimeout(() => process.exit(0), 50)'], {
+        input,
+        timeoutMs: 5_000,
+      }),
+    ).rejects.toThrow(/stdin|pipe|epipe/i)
+  })
+})
+
+describe('runtime model catalog', () => {
+  it('does not advertise the ChatGPT-account-incompatible gpt-5.6-codex slug', () => {
+    // Captured from the real OAuth endpoint: this slug returns HTTP 400 when
+    // used through a ChatGPT subscription, so offering it creates dead seats.
+    expect(CHATGPT_MODELS).not.toContain('gpt-5.6-codex')
+  })
+})
 
 describe('parseHermesResult (openai-codex via Hermes OAuth)', () => {
   const REAL = [
@@ -31,7 +100,21 @@ describe('parseHermesResult (openai-codex via Hermes OAuth)', () => {
   it('treats a non-zero exit_code as a failure rather than an answer', () => {
     const failed =
       '{"type": "result", "exit_code": 1, "text": "partial", "tokens": {"total": 3}}'
-    expect(() => parseHermesResult(failed)).toThrow(/exit code 1/i)
+    expect(() => parseHermesResult(failed)).toThrow(/exit 1/i)
+  })
+
+  it('surfaces WHY the run failed instead of a bare exit code', () => {
+    // Captured verbatim: a rate-limited crew seat. "exit code 1" alone sent me
+    // hunting a phantom bug; the real cause was sitting in `error`.
+    const rateLimited =
+      '{"type": "result", "session_id": "s", "exit_code": 1, "text": "ChatGPT or Codex Subscription rate-limited every one of 3 attempts.", "error": "HTTP 429: The usage limit has been reached", "tokens": {"total": 0}}'
+    expect(() => parseHermesResult(rateLimited)).toThrow(/429|usage limit/i)
+  })
+
+  it('falls back to the result text when there is no explicit error field', () => {
+    const failed =
+      '{"type": "result", "exit_code": 2, "text": "provider is unreachable", "tokens": {}}'
+    expect(() => parseHermesResult(failed)).toThrow(/provider is unreachable/i)
   })
 
   it('fails loudly when no result event is present', () => {
@@ -100,6 +183,12 @@ describe('parseOllamaResult (local models)', () => {
 
   it('surfaces an ollama error payload', () => {
     expect(() => parseOllamaResult({ error: 'model not found' })).toThrow(/model not found/i)
+  })
+
+  it('includes the Ollama response body in HTTP errors', () => {
+    expect(formatOllamaHttpError(500, '{"error":"model runner crashed"}')).toMatch(
+      /model runner crashed/i,
+    )
   })
 })
 
