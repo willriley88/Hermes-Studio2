@@ -284,13 +284,22 @@ export function createSchedule(input: {
 export function scanProjects(): { added: number; total: number } {
   const store = getWorkbenchStore()
   const discovered = discoverProjects()
+  // Every directory under the projects root is a git repo, so discovery finds
+  // archived projects too. Without this check, archiving is undone by the next
+  // scan and the dead projects come back.
+  const archived = store.archivedProjectPaths()
   let added = 0
   for (const candidate of discovered) {
+    if (archived.has(candidate.path)) continue
     if (store.findProjectByPath(candidate.path)) continue
     store.createProject({ name: candidate.name, path: candidate.path, description: '' })
     added += 1
   }
   return { added, total: discovered.length }
+}
+
+export function setProjectArchived(projectId: string, archived: boolean): boolean {
+  return getWorkbenchStore().setProjectArchived(projectId, archived)
 }
 
 export function listProjectFiles(projectId: string): string[] {

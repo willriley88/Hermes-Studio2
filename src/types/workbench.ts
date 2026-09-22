@@ -15,6 +15,8 @@ export type WorkbenchProject = {
   path: string
   description: string
   createdAt: number
+  /** 1 = hidden from the workbench and skipped by project discovery. */
+  archived?: number
 }
 export type WorkbenchTaskStatus = 'backlog' | 'ready' | 'running' | 'review' | 'done'
 export type WorkbenchTask = {

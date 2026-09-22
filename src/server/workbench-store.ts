@@ -159,6 +159,17 @@ export class WorkbenchStore {
     if (!scheduleColumns.has('lastError')) {
       this.db.exec('ALTER TABLE schedules ADD COLUMN lastError TEXT')
     }
+
+    // Archiving, not deletion: every directory under the projects root is a git
+    // repo, so scanProjects() re-adds anything removed. An archived project stays
+    // in the table (its runs and tasks keep their foreign keys) but is hidden from
+    // the workbench and skipped by discovery.
+    const projectColumns = new Set(
+      (this.db.prepare('PRAGMA table_info(projects)').all() as { name: string }[]).map((c) => c.name),
+    )
+    if (!projectColumns.has('archived')) {
+      this.db.exec('ALTER TABLE projects ADD COLUMN archived INTEGER NOT NULL DEFAULT 0')
+    }
   }
 
   close(): void {
@@ -191,6 +202,22 @@ export class WorkbenchStore {
 
   getProject(id: string): WorkbenchProject | null {
     return (this.db.prepare('SELECT * FROM projects WHERE id = ?').get(id) as WorkbenchProject) ?? null
+  }
+
+  /** Hide a project from the workbench without losing its runs, tasks or history. */
+  setProjectArchived(id: string, archived: boolean): boolean {
+    const result = this.db
+      .prepare('UPDATE projects SET archived = ? WHERE id = ?')
+      .run(archived ? 1 : 0, id)
+    return result.changes > 0
+  }
+
+  /** Paths that must not be re-added by discovery. */
+  archivedProjectPaths(): Set<string> {
+    const rows = this.db.prepare('SELECT path FROM projects WHERE archived = 1').all() as {
+      path: string
+    }[]
+    return new Set(rows.map((r) => r.path))
   }
 
   // ─── Tasks ─────────────────────────────────────────────────────────────────
@@ -638,8 +665,10 @@ export class WorkbenchStore {
   // ─── Read model ────────────────────────────────────────────────────────────
 
   state(): { projects: WorkbenchProject[]; tasks: WorkbenchTask[]; runs: WorkbenchRun[] } {
+    // Archived projects stay in the table for referential integrity but must not
+    // appear in the workbench — that is the whole point of archiving them.
     const projects = this.db
-      .prepare('SELECT * FROM projects ORDER BY name COLLATE NOCASE')
+      .prepare('SELECT * FROM projects WHERE archived = 0 ORDER BY name COLLATE NOCASE')
       .all() as WorkbenchProject[]
     const tasks = this.db
       .prepare('SELECT * FROM tasks ORDER BY createdAt DESC')
