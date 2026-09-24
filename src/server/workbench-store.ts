@@ -185,10 +185,15 @@ export class WorkbenchStore {
       path: input.path,
       description: input.description ?? '',
       createdAt: Date.now(),
+      // Written explicitly rather than left to the column default, so the object
+      // returned here is identical to the row a later SELECT reads back. When
+      // this was omitted, createProject() returned a project without `archived`
+      // while state() returned one with `archived: 0`, and the two compared unequal.
+      archived: 0,
     }
     this.db
       .prepare(
-        'INSERT INTO projects (id, name, path, description, createdAt) VALUES (@id, @name, @path, @description, @createdAt)',
+        'INSERT INTO projects (id, name, path, description, createdAt, archived) VALUES (@id, @name, @path, @description, @createdAt, @archived)',
       )
       .run(project)
     return project
