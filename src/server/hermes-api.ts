@@ -58,8 +58,12 @@ export type HermesConfig = {
 }
 
 type HermesSessionListResponse = {
-  items?: Array<HermesSession>
+  // Current Hermes shape: { object: 'list', data: [...] }
+  object?: string
   data?: Array<HermesSession>
+  // Legacy shape: { items: [...], total }
+  items?: Array<HermesSession>
+  total?: number
 }
 
 type HermesMessageListResponse = {
