@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Markdown } from '@/components/prompt-kit/markdown'
 import { cn } from '@/lib/utils'
+import { VaultSyncBar, obsidianUrl, useVaultStatus } from './vault-sync-bar'
 
 type WikiPageMeta = {
   path: string
@@ -573,7 +574,8 @@ export function KnowledgeBrowserScreen() {
   useEffect(() => {
     if (!pages.length) return
     if (selectedPath && pages.some((page) => page.path === selectedPath)) return
-    setSelectedPath(pages[0]?.path ?? null)
+    const home = pages.find((page) => page.path === 'Hermes/Home.md')
+    setSelectedPath(home?.path ?? pages[0]?.path ?? null)
   }, [pages, selectedPath])
 
   const readQuery = useQuery({
@@ -599,7 +601,9 @@ export function KnowledgeBrowserScreen() {
     queryFn: () => readJson<KnowledgeGraphResponse>('/api/knowledge/graph'),
   })
 
+  const vaultStatus = useVaultStatus()
   const page = readQuery.data?.page ?? null
+  const openInObsidian = obsidianUrl(vaultStatus.data, page?.path)
   const content = readQuery.data?.content ?? ''
   const backlinks = readQuery.data?.backlinks ?? []
   const processedContent = useMemo(
@@ -699,6 +703,8 @@ export function KnowledgeBrowserScreen() {
           </div>
         </div>
       </div>
+
+      <VaultSyncBar />
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 md:grid-cols-[320px_minmax(0,1fr)] md:p-4">
         <aside className="flex min-h-0 flex-col rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg)]  ">
@@ -857,6 +863,16 @@ export function KnowledgeBrowserScreen() {
               ) : null}
             </div>
             {page ? (
+              <div className="flex shrink-0 items-center gap-2">
+              {openInObsidian ? (
+                <a
+                  href={openInObsidian}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-[var(--theme-border)] px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-[var(--theme-hover)]"
+                >
+                  <HugeiconsIcon icon={Link01Icon} size={14} strokeWidth={1.7} />
+                  Open in Obsidian
+                </a>
+              ) : null}
               <a
                 href={askUrl}
                 className="inline-flex items-center gap-1.5 rounded-md border border-[var(--theme-border)] px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-[var(--theme-hover)]     "
@@ -868,6 +884,7 @@ export function KnowledgeBrowserScreen() {
                 />
                 Ask agent about this
               </a>
+              </div>
             ) : null}
           </div>
 
@@ -1200,7 +1217,10 @@ function EmptyKnowledgeState({ knowledgeRoot }: { knowledgeRoot: string }) {
         No knowledge base found
       </div>
       <p className="mt-2 text-pretty">
-        Create markdown files in <code>{knowledgeRoot}</code> to get started.
+        Click <strong>Sync from Hermes</strong> above to build an organized
+        memory vault from your Hermes memory and session history, or create
+        markdown files in <code>{knowledgeRoot}</code>. Use{' '}
+        <strong>Change vault</strong> to point Studio at an Obsidian vault.
       </p>
       <a
         href="https://karpathy.ai/"
