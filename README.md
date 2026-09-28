@@ -583,6 +583,27 @@ The Memory screen's graph view is now a fully interactive force-directed canvas 
 - **Node drag** — drag individual nodes to reposition them; position is pinned for the session
 - **Stats counter** — `N nodes · M edges` shown in the bottom-right corner
 
+### 🗂️ Obsidian Vault & Organized Memory
+
+Studio's Knowledge tab and Obsidian can share one folder. Both read plain markdown with `[[wikilinks]]` and YAML frontmatter, so notes, backlinks, tags and the graph stay in sync.
+
+- **Connect a vault** — Memory → Knowledge → **Change vault**, then enter your vault folder (e.g. `~/Documents/Obsidian/MyVault`). You can also set `OBSIDIAN_VAULT_DIR` in `.env`. When the folder contains `.obsidian/`, each page gets an **Open in Obsidian** button.
+- **Sync from Hermes** — builds an organized, interlinked memory vault in the vault's `Hermes/` subfolder from `~/.hermes/memories/` (MEMORY.md, USER.md, daily notes), context files (SOUL.md, AGENTS.md) and your session history. Sessions come from the Hermes session API, or from Studio's local history when the gateway is offline.
+- **Layout**
+
+  ```
+  Hermes/
+    Home.md                 start here: memory, topics, recent sessions and days
+    Memory/                 Agent Memory, User Profile, Corrections, other memory notes
+    Topics/                 Preferences, Projects, Code and Dev, Infrastructure, Automation…
+    Sessions/<YYYY-MM>/     one note per session with summary, links and transcript
+    Sources/                sessions grouped by where they started (cli, cron, telegram…)
+    Daily/<YYYY-MM-DD>.md   sessions and the daily memory note for each day
+    Context/                SOUL.md and other context files
+  ```
+
+- **Safe to re-run** — every generated note carries `generated_by: hermes-studio`. Sync only rewrites or removes notes that still have that line, so your own notes and any note you've edited (with the line removed) are left alone. Nothing outside `Hermes/` is touched.
+
 ### 🔐 Permissions & Toolsets
 
 - Approvals mode selector (auto / always / never)

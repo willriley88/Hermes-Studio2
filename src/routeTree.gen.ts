@@ -9,217 +9,124 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as SplatRouteImport } from './routes/$'
-import { Route as AgentsRouteImport } from './routes/agents'
-import { Route as AnalyticsRouteImport } from './routes/analytics'
-import { Route as AuditRouteImport } from './routes/audit'
-import { Route as ConductorRouteImport } from './routes/conductor'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as DocsRouteImport } from './routes/docs'
-import { Route as FilesRouteImport } from './routes/files'
-import { Route as HelpRouteImport } from './routes/help'
-import { Route as JobsRouteImport } from './routes/jobs'
-import { Route as LogsRouteImport } from './routes/logs'
-import { Route as MemoryRouteImport } from './routes/memory'
-import { Route as OperationsRouteImport } from './routes/operations'
-import { Route as PatternsRouteImport } from './routes/patterns'
-import { Route as ProfilesRouteImport } from './routes/profiles'
-import { Route as ProjectsRouteImport } from './routes/projects'
-import { Route as SessionHistoryRouteImport } from './routes/session-history'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as SkillsRouteImport } from './routes/skills'
-import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as TerminalRouteImport } from './routes/terminal'
-import { Route as ApiAuthRouteImport } from './routes/api/auth'
-import { Route as ApiAuthCheckRouteImport } from './routes/api/auth-check'
-import { Route as ApiChatEventsRouteImport } from './routes/api/chat-events'
-import { Route as ApiConductorSpawnRouteImport } from './routes/api/conductor-spawn'
-import { Route as ApiConductorStopRouteImport } from './routes/api/conductor-stop'
-import { Route as ApiConnectionStatusRouteImport } from './routes/api/connection-status'
-import { Route as ApiContextUsageRouteImport } from './routes/api/context-usage'
-import { Route as ApiEventsRouteImport } from './routes/api/events'
-import { Route as ApiFilesRouteImport } from './routes/api/files'
-import { Route as ApiGatewayStatusRouteImport } from './routes/api/gateway-status'
-import { Route as ApiHermesConfigRouteImport } from './routes/api/hermes-config'
-import { Route as ApiHermesJobsRouteImport } from './routes/api/hermes-jobs'
-import { Route as ApiHermesRunsRouteImport } from './routes/api/hermes-runs'
-import { Route as ApiHistoryRouteImport } from './routes/api/history'
-import { Route as ApiMemoryRouteImport } from './routes/api/memory'
-import { Route as ApiModelsRouteImport } from './routes/api/models'
-import { Route as ApiPathsRouteImport } from './routes/api/paths'
-import { Route as ApiPingRouteImport } from './routes/api/ping'
-import { Route as ApiProviderUsageRouteImport } from './routes/api/provider-usage'
-import { Route as ApiSendRouteImport } from './routes/api/send'
-import { Route as ApiSendStreamRouteImport } from './routes/api/send-stream'
-import { Route as ApiSessionStatusRouteImport } from './routes/api/session-status'
-import { Route as ApiSessionsRouteImport } from './routes/api/sessions'
-import { Route as ApiSkillsRouteImport } from './routes/api/skills'
-import { Route as ApiStartAgentRouteImport } from './routes/api/start-agent'
-import { Route as ApiStartHermesRouteImport } from './routes/api/start-hermes'
-import { Route as ApiStateAnalyticsRouteImport } from './routes/api/state-analytics'
-import { Route as ApiSystemHealthRouteImport } from './routes/api/system-health'
-import { Route as ApiSystemdControlRouteImport } from './routes/api/systemd-control'
-import { Route as ApiSystemdStatusRouteImport } from './routes/api/systemd-status'
-import { Route as ApiTerminalCloseRouteImport } from './routes/api/terminal-close'
-import { Route as ApiTerminalInputRouteImport } from './routes/api/terminal-input'
-import { Route as ApiTerminalResizeRouteImport } from './routes/api/terminal-resize'
-import { Route as ApiTerminalStreamRouteImport } from './routes/api/terminal-stream'
-import { Route as ApiWorkbenchRouteImport } from './routes/api/workbench'
-import { Route as ApiWorkbenchFilesRouteImport } from './routes/api/workbench-files'
-import { Route as ApiWorkspaceRouteImport } from './routes/api/workspace'
-import { Route as ChatIndexRouteImport } from './routes/chat/index'
-import { Route as ChatSessionKeyRouteImport } from './routes/chat/$sessionKey'
-import { Route as CrewsIndexRouteImport } from './routes/crews/index'
-import { Route as CrewsCrewIdRouteImport } from './routes/crews/$crewId'
+import { Route as TasksRouteImport } from './routes/tasks'
+import { Route as SkillsRouteImport } from './routes/skills'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SessionHistoryRouteImport } from './routes/session-history'
+import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as ProfilesRouteImport } from './routes/profiles'
+import { Route as PatternsRouteImport } from './routes/patterns'
+import { Route as OperationsRouteImport } from './routes/operations'
+import { Route as MemoryRouteImport } from './routes/memory'
+import { Route as LogsRouteImport } from './routes/logs'
+import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as HelpRouteImport } from './routes/help'
+import { Route as FilesRouteImport } from './routes/files'
+import { Route as DocsRouteImport } from './routes/docs'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ConductorRouteImport } from './routes/conductor'
+import { Route as AuditRouteImport } from './routes/audit'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AgentsRouteImport } from './routes/agents'
+import { Route as SplatRouteImport } from './routes/$'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
-import { Route as SettingsMcpRouteImport } from './routes/settings/mcp'
+import { Route as CrewsIndexRouteImport } from './routes/crews/index'
+import { Route as ChatIndexRouteImport } from './routes/chat/index'
 import { Route as SettingsProvidersRouteImport } from './routes/settings/providers'
-import { Route as ApiAgentsIndexRouteImport } from './routes/api/agents/index'
-import { Route as ApiAgentsAgentIdRouteImport } from './routes/api/agents/$agentId'
-import { Route as ApiAuditIndexRouteImport } from './routes/api/audit/index'
-import { Route as ApiCrewsIndexRouteImport } from './routes/api/crews/index'
-import { Route as ApiCrewsCrewIdRouteImport } from './routes/api/crews/$crewId'
-import { Route as ApiEventsReplayRouteImport } from './routes/api/events/replay'
-import { Route as ApiHermesJobsJobIdRouteImport } from './routes/api/hermes-jobs.$jobId'
-import { Route as ApiHermesProxySplatRouteImport } from './routes/api/hermes-proxy/$'
-import { Route as ApiKnowledgeGraphRouteImport } from './routes/api/knowledge/graph'
-import { Route as ApiKnowledgeListRouteImport } from './routes/api/knowledge/list'
-import { Route as ApiKnowledgeReadRouteImport } from './routes/api/knowledge/read'
-import { Route as ApiKnowledgeSearchRouteImport } from './routes/api/knowledge/search'
-import { Route as ApiMcpReloadRouteImport } from './routes/api/mcp/reload'
-import { Route as ApiMcpServersRouteImport } from './routes/api/mcp/servers'
-import { Route as ApiMemoryListRouteImport } from './routes/api/memory/list'
-import { Route as ApiMemoryReadRouteImport } from './routes/api/memory/read'
-import { Route as ApiMemorySearchRouteImport } from './routes/api/memory/search'
-import { Route as ApiMemoryWriteRouteImport } from './routes/api/memory/write'
-import { Route as ApiOauthDeviceCodeRouteImport } from './routes/api/oauth.device-code'
-import { Route as ApiOauthPollTokenRouteImport } from './routes/api/oauth.poll-token'
-import { Route as ApiOperationsIndexRouteImport } from './routes/api/operations/index'
-import { Route as ApiProfilesActivateRouteImport } from './routes/api/profiles/activate'
-import { Route as ApiProfilesCreateRouteImport } from './routes/api/profiles/create'
-import { Route as ApiProfilesDeleteRouteImport } from './routes/api/profiles/delete'
-import { Route as ApiProfilesListRouteImport } from './routes/api/profiles/list'
-import { Route as ApiProfilesReadRouteImport } from './routes/api/profiles/read'
-import { Route as ApiProfilesRenameRouteImport } from './routes/api/profiles/rename'
-import { Route as ApiSessionsSendRouteImport } from './routes/api/sessions/send'
-import { Route as ApiSkillsHubSearchRouteImport } from './routes/api/skills/hub-search'
-import { Route as ApiSkillsInstallRouteImport } from './routes/api/skills/install'
-import { Route as ApiSkillsSettingsRouteImport } from './routes/api/skills/settings'
-import { Route as ApiSkillsUninstallRouteImport } from './routes/api/skills/uninstall'
+import { Route as SettingsMcpRouteImport } from './routes/settings/mcp'
+import { Route as CrewsCrewIdRouteImport } from './routes/crews/$crewId'
+import { Route as ChatSessionKeyRouteImport } from './routes/chat/$sessionKey'
+import { Route as ApiWorkspaceRouteImport } from './routes/api/workspace'
+import { Route as ApiWorkbenchFilesRouteImport } from './routes/api/workbench-files'
+import { Route as ApiWorkbenchRouteImport } from './routes/api/workbench'
+import { Route as ApiTerminalStreamRouteImport } from './routes/api/terminal-stream'
+import { Route as ApiTerminalResizeRouteImport } from './routes/api/terminal-resize'
+import { Route as ApiTerminalInputRouteImport } from './routes/api/terminal-input'
+import { Route as ApiTerminalCloseRouteImport } from './routes/api/terminal-close'
+import { Route as ApiSystemdStatusRouteImport } from './routes/api/systemd-status'
+import { Route as ApiSystemdControlRouteImport } from './routes/api/systemd-control'
+import { Route as ApiSystemHealthRouteImport } from './routes/api/system-health'
+import { Route as ApiStateAnalyticsRouteImport } from './routes/api/state-analytics'
+import { Route as ApiStartHermesRouteImport } from './routes/api/start-hermes'
+import { Route as ApiStartAgentRouteImport } from './routes/api/start-agent'
+import { Route as ApiSkillsRouteImport } from './routes/api/skills'
+import { Route as ApiSessionsRouteImport } from './routes/api/sessions'
+import { Route as ApiSessionStatusRouteImport } from './routes/api/session-status'
+import { Route as ApiSendStreamRouteImport } from './routes/api/send-stream'
+import { Route as ApiSendRouteImport } from './routes/api/send'
+import { Route as ApiProviderUsageRouteImport } from './routes/api/provider-usage'
+import { Route as ApiPingRouteImport } from './routes/api/ping'
+import { Route as ApiPathsRouteImport } from './routes/api/paths'
+import { Route as ApiModelsRouteImport } from './routes/api/models'
+import { Route as ApiMemoryRouteImport } from './routes/api/memory'
+import { Route as ApiHistoryRouteImport } from './routes/api/history'
+import { Route as ApiHermesRunsRouteImport } from './routes/api/hermes-runs'
+import { Route as ApiHermesJobsRouteImport } from './routes/api/hermes-jobs'
+import { Route as ApiHermesConfigRouteImport } from './routes/api/hermes-config'
+import { Route as ApiGatewayStatusRouteImport } from './routes/api/gateway-status'
+import { Route as ApiFilesRouteImport } from './routes/api/files'
+import { Route as ApiEventsRouteImport } from './routes/api/events'
+import { Route as ApiContextUsageRouteImport } from './routes/api/context-usage'
+import { Route as ApiConnectionStatusRouteImport } from './routes/api/connection-status'
+import { Route as ApiConductorStopRouteImport } from './routes/api/conductor-stop'
+import { Route as ApiConductorSpawnRouteImport } from './routes/api/conductor-spawn'
+import { Route as ApiChatEventsRouteImport } from './routes/api/chat-events'
+import { Route as ApiAuthCheckRouteImport } from './routes/api/auth-check'
+import { Route as ApiAuthRouteImport } from './routes/api/auth'
 import { Route as ApiTasksIndexRouteImport } from './routes/api/tasks/index'
+import { Route as ApiOperationsIndexRouteImport } from './routes/api/operations/index'
+import { Route as ApiCrewsIndexRouteImport } from './routes/api/crews/index'
+import { Route as ApiAuditIndexRouteImport } from './routes/api/audit/index'
+import { Route as ApiAgentsIndexRouteImport } from './routes/api/agents/index'
 import { Route as ApiTasksTaskIdRouteImport } from './routes/api/tasks/$taskId'
-import { Route as ApiApprovalsApprovalIdApproveRouteImport } from './routes/api/approvals.$approvalId.approve'
-import { Route as ApiApprovalsApprovalIdDenyRouteImport } from './routes/api/approvals.$approvalId.deny'
-import { Route as ApiCrewsCrewIdCloneRouteImport } from './routes/api/crews/$crewId.clone'
-import { Route as ApiCrewsCrewIdDispatchRouteImport } from './routes/api/crews/$crewId.dispatch'
-import { Route as ApiCrewsCrewIdUsageRouteImport } from './routes/api/crews/$crewId.usage'
-import { Route as ApiCrewsCrewIdWorkflowRouteImport } from './routes/api/crews/$crewId.workflow'
+import { Route as ApiSkillsUninstallRouteImport } from './routes/api/skills/uninstall'
+import { Route as ApiSkillsSettingsRouteImport } from './routes/api/skills/settings'
+import { Route as ApiSkillsInstallRouteImport } from './routes/api/skills/install'
+import { Route as ApiSkillsHubSearchRouteImport } from './routes/api/skills/hub-search'
+import { Route as ApiSessionsSendRouteImport } from './routes/api/sessions/send'
+import { Route as ApiProfilesRenameRouteImport } from './routes/api/profiles/rename'
+import { Route as ApiProfilesReadRouteImport } from './routes/api/profiles/read'
+import { Route as ApiProfilesListRouteImport } from './routes/api/profiles/list'
+import { Route as ApiProfilesDeleteRouteImport } from './routes/api/profiles/delete'
+import { Route as ApiProfilesCreateRouteImport } from './routes/api/profiles/create'
+import { Route as ApiProfilesActivateRouteImport } from './routes/api/profiles/activate'
+import { Route as ApiOauthPollTokenRouteImport } from './routes/api/oauth.poll-token'
+import { Route as ApiOauthDeviceCodeRouteImport } from './routes/api/oauth.device-code'
+import { Route as ApiMemoryWriteRouteImport } from './routes/api/memory/write'
+import { Route as ApiMemorySearchRouteImport } from './routes/api/memory/search'
+import { Route as ApiMemoryReadRouteImport } from './routes/api/memory/read'
+import { Route as ApiMemoryListRouteImport } from './routes/api/memory/list'
+import { Route as ApiMcpServersRouteImport } from './routes/api/mcp/servers'
+import { Route as ApiMcpReloadRouteImport } from './routes/api/mcp/reload'
+import { Route as ApiKnowledgeVaultRouteImport } from './routes/api/knowledge/vault'
+import { Route as ApiKnowledgeSyncRouteImport } from './routes/api/knowledge/sync'
+import { Route as ApiKnowledgeSearchRouteImport } from './routes/api/knowledge/search'
+import { Route as ApiKnowledgeReadRouteImport } from './routes/api/knowledge/read'
+import { Route as ApiKnowledgeListRouteImport } from './routes/api/knowledge/list'
+import { Route as ApiKnowledgeGraphRouteImport } from './routes/api/knowledge/graph'
+import { Route as ApiHermesProxySplatRouteImport } from './routes/api/hermes-proxy/$'
+import { Route as ApiHermesJobsJobIdRouteImport } from './routes/api/hermes-jobs.$jobId'
+import { Route as ApiEventsReplayRouteImport } from './routes/api/events/replay'
+import { Route as ApiCrewsCrewIdRouteImport } from './routes/api/crews/$crewId'
+import { Route as ApiAgentsAgentIdRouteImport } from './routes/api/agents/$agentId'
 import { Route as ApiCrewsTemplatesIndexRouteImport } from './routes/api/crews/templates/index'
-import { Route as ApiCrewsTemplatesIdRouteImport } from './routes/api/crews/templates/$id'
-import { Route as ApiHermesRunsRunIdEventsRouteImport } from './routes/api/hermes-runs.$runId.events'
-import { Route as ApiSessionsSessionKeyActiveRunRouteImport } from './routes/api/sessions/$sessionKey.active-run'
-import { Route as ApiSessionsSessionKeyStatusRouteImport } from './routes/api/sessions/$sessionKey.status'
 import { Route as ApiTasksTaskIdMoveRouteImport } from './routes/api/tasks/$taskId.move'
+import { Route as ApiSessionsSessionKeyStatusRouteImport } from './routes/api/sessions/$sessionKey.status'
+import { Route as ApiSessionsSessionKeyActiveRunRouteImport } from './routes/api/sessions/$sessionKey.active-run'
+import { Route as ApiHermesRunsRunIdEventsRouteImport } from './routes/api/hermes-runs.$runId.events'
+import { Route as ApiCrewsTemplatesIdRouteImport } from './routes/api/crews/templates/$id'
+import { Route as ApiCrewsCrewIdWorkflowRouteImport } from './routes/api/crews/$crewId.workflow'
+import { Route as ApiCrewsCrewIdUsageRouteImport } from './routes/api/crews/$crewId.usage'
+import { Route as ApiCrewsCrewIdDispatchRouteImport } from './routes/api/crews/$crewId.dispatch'
+import { Route as ApiCrewsCrewIdCloneRouteImport } from './routes/api/crews/$crewId.clone'
+import { Route as ApiApprovalsApprovalIdDenyRouteImport } from './routes/api/approvals.$approvalId.deny'
+import { Route as ApiApprovalsApprovalIdApproveRouteImport } from './routes/api/approvals.$approvalId.approve'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SplatRoute = SplatRouteImport.update({
-  id: '/$',
-  path: '/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AgentsRoute = AgentsRouteImport.update({
-  id: '/agents',
-  path: '/agents',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AnalyticsRoute = AnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuditRoute = AuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConductorRoute = ConductorRouteImport.update({
-  id: '/conductor',
-  path: '/conductor',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DocsRoute = DocsRouteImport.update({
-  id: '/docs',
-  path: '/docs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FilesRoute = FilesRouteImport.update({
-  id: '/files',
-  path: '/files',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HelpRoute = HelpRouteImport.update({
-  id: '/help',
-  path: '/help',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JobsRoute = JobsRouteImport.update({
-  id: '/jobs',
-  path: '/jobs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LogsRoute = LogsRouteImport.update({
-  id: '/logs',
-  path: '/logs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MemoryRoute = MemoryRouteImport.update({
-  id: '/memory',
-  path: '/memory',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OperationsRoute = OperationsRouteImport.update({
-  id: '/operations',
-  path: '/operations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PatternsRoute = PatternsRouteImport.update({
-  id: '/patterns',
-  path: '/patterns',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfilesRoute = ProfilesRouteImport.update({
-  id: '/profiles',
-  path: '/profiles',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjectsRoute = ProjectsRouteImport.update({
-  id: '/projects',
-  path: '/projects',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SessionHistoryRoute = SessionHistoryRouteImport.update({
-  id: '/session-history',
-  path: '/session-history',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SkillsRoute = SkillsRouteImport.update({
-  id: '/skills',
-  path: '/skills',
+const TerminalRoute = TerminalRouteImport.update({
+  id: '/terminal',
+  path: '/terminal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TasksRoute = TasksRouteImport.update({
@@ -227,214 +134,104 @@ const TasksRoute = TasksRouteImport.update({
   path: '/tasks',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TerminalRoute = TerminalRouteImport.update({
-  id: '/terminal',
-  path: '/terminal',
+const SkillsRoute = SkillsRouteImport.update({
+  id: '/skills',
+  path: '/skills',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuthRoute = ApiAuthRouteImport.update({
-  id: '/api/auth',
-  path: '/api/auth',
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuthCheckRoute = ApiAuthCheckRouteImport.update({
-  id: '/api/auth-check',
-  path: '/api/auth-check',
+const SessionHistoryRoute = SessionHistoryRouteImport.update({
+  id: '/session-history',
+  path: '/session-history',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiChatEventsRoute = ApiChatEventsRouteImport.update({
-  id: '/api/chat-events',
-  path: '/api/chat-events',
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiConductorSpawnRoute = ApiConductorSpawnRouteImport.update({
-  id: '/api/conductor-spawn',
-  path: '/api/conductor-spawn',
+const ProfilesRoute = ProfilesRouteImport.update({
+  id: '/profiles',
+  path: '/profiles',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiConductorStopRoute = ApiConductorStopRouteImport.update({
-  id: '/api/conductor-stop',
-  path: '/api/conductor-stop',
+const PatternsRoute = PatternsRouteImport.update({
+  id: '/patterns',
+  path: '/patterns',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiConnectionStatusRoute = ApiConnectionStatusRouteImport.update({
-  id: '/api/connection-status',
-  path: '/api/connection-status',
+const OperationsRoute = OperationsRouteImport.update({
+  id: '/operations',
+  path: '/operations',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiContextUsageRoute = ApiContextUsageRouteImport.update({
-  id: '/api/context-usage',
-  path: '/api/context-usage',
+const MemoryRoute = MemoryRouteImport.update({
+  id: '/memory',
+  path: '/memory',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiEventsRoute = ApiEventsRouteImport.update({
-  id: '/api/events',
-  path: '/api/events',
+const LogsRoute = LogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiFilesRoute = ApiFilesRouteImport.update({
-  id: '/api/files',
-  path: '/api/files',
+const JobsRoute = JobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGatewayStatusRoute = ApiGatewayStatusRouteImport.update({
-  id: '/api/gateway-status',
-  path: '/api/gateway-status',
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiHermesConfigRoute = ApiHermesConfigRouteImport.update({
-  id: '/api/hermes-config',
-  path: '/api/hermes-config',
+const FilesRoute = FilesRouteImport.update({
+  id: '/files',
+  path: '/files',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiHermesJobsRoute = ApiHermesJobsRouteImport.update({
-  id: '/api/hermes-jobs',
-  path: '/api/hermes-jobs',
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiHermesRunsRoute = ApiHermesRunsRouteImport.update({
-  id: '/api/hermes-runs',
-  path: '/api/hermes-runs',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiHistoryRoute = ApiHistoryRouteImport.update({
-  id: '/api/history',
-  path: '/api/history',
+const ConductorRoute = ConductorRouteImport.update({
+  id: '/conductor',
+  path: '/conductor',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiMemoryRoute = ApiMemoryRouteImport.update({
-  id: '/api/memory',
-  path: '/api/memory',
+const AuditRoute = AuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiModelsRoute = ApiModelsRouteImport.update({
-  id: '/api/models',
-  path: '/api/models',
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPathsRoute = ApiPathsRouteImport.update({
-  id: '/api/paths',
-  path: '/api/paths',
+const AgentsRoute = AgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPingRoute = ApiPingRouteImport.update({
-  id: '/api/ping',
-  path: '/api/ping',
+const SplatRoute = SplatRouteImport.update({
+  id: '/$',
+  path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiProviderUsageRoute = ApiProviderUsageRouteImport.update({
-  id: '/api/provider-usage',
-  path: '/api/provider-usage',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSendRoute = ApiSendRouteImport.update({
-  id: '/api/send',
-  path: '/api/send',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSendStreamRoute = ApiSendStreamRouteImport.update({
-  id: '/api/send-stream',
-  path: '/api/send-stream',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSessionStatusRoute = ApiSessionStatusRouteImport.update({
-  id: '/api/session-status',
-  path: '/api/session-status',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSessionsRoute = ApiSessionsRouteImport.update({
-  id: '/api/sessions',
-  path: '/api/sessions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSkillsRoute = ApiSkillsRouteImport.update({
-  id: '/api/skills',
-  path: '/api/skills',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiStartAgentRoute = ApiStartAgentRouteImport.update({
-  id: '/api/start-agent',
-  path: '/api/start-agent',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiStartHermesRoute = ApiStartHermesRouteImport.update({
-  id: '/api/start-hermes',
-  path: '/api/start-hermes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiStateAnalyticsRoute = ApiStateAnalyticsRouteImport.update({
-  id: '/api/state-analytics',
-  path: '/api/state-analytics',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSystemHealthRoute = ApiSystemHealthRouteImport.update({
-  id: '/api/system-health',
-  path: '/api/system-health',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSystemdControlRoute = ApiSystemdControlRouteImport.update({
-  id: '/api/systemd-control',
-  path: '/api/systemd-control',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSystemdStatusRoute = ApiSystemdStatusRouteImport.update({
-  id: '/api/systemd-status',
-  path: '/api/systemd-status',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiTerminalCloseRoute = ApiTerminalCloseRouteImport.update({
-  id: '/api/terminal-close',
-  path: '/api/terminal-close',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiTerminalInputRoute = ApiTerminalInputRouteImport.update({
-  id: '/api/terminal-input',
-  path: '/api/terminal-input',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiTerminalResizeRoute = ApiTerminalResizeRouteImport.update({
-  id: '/api/terminal-resize',
-  path: '/api/terminal-resize',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiTerminalStreamRoute = ApiTerminalStreamRouteImport.update({
-  id: '/api/terminal-stream',
-  path: '/api/terminal-stream',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiWorkbenchRoute = ApiWorkbenchRouteImport.update({
-  id: '/api/workbench',
-  path: '/api/workbench',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiWorkbenchFilesRoute = ApiWorkbenchFilesRouteImport.update({
-  id: '/api/workbench-files',
-  path: '/api/workbench-files',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiWorkspaceRoute = ApiWorkspaceRouteImport.update({
-  id: '/api/workspace',
-  path: '/api/workspace',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChatIndexRoute = ChatIndexRouteImport.update({
-  id: '/chat/',
-  path: '/chat/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChatSessionKeyRoute = ChatSessionKeyRouteImport.update({
-  id: '/chat/$sessionKey',
-  path: '/chat/$sessionKey',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CrewsIndexRoute = CrewsIndexRouteImport.update({
-  id: '/crews/',
-  path: '/crews/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CrewsCrewIdRoute = CrewsCrewIdRouteImport.update({
-  id: '/crews/$crewId',
-  path: '/crews/$crewId',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
@@ -442,114 +239,224 @@ const SettingsIndexRoute = SettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SettingsRoute,
 } as any)
-const SettingsMcpRoute = SettingsMcpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => SettingsRoute,
+const CrewsIndexRoute = CrewsIndexRouteImport.update({
+  id: '/crews/',
+  path: '/crews/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatIndexRoute = ChatIndexRouteImport.update({
+  id: '/chat/',
+  path: '/chat/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsProvidersRoute = SettingsProvidersRouteImport.update({
   id: '/providers',
   path: '/providers',
   getParentRoute: () => SettingsRoute,
 } as any)
-const ApiAgentsIndexRoute = ApiAgentsIndexRouteImport.update({
-  id: '/api/agents/',
-  path: '/api/agents/',
+const SettingsMcpRoute = SettingsMcpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const CrewsCrewIdRoute = CrewsCrewIdRouteImport.update({
+  id: '/crews/$crewId',
+  path: '/crews/$crewId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAgentsAgentIdRoute = ApiAgentsAgentIdRouteImport.update({
-  id: '/api/agents/$agentId',
-  path: '/api/agents/$agentId',
+const ChatSessionKeyRoute = ChatSessionKeyRouteImport.update({
+  id: '/chat/$sessionKey',
+  path: '/chat/$sessionKey',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuditIndexRoute = ApiAuditIndexRouteImport.update({
-  id: '/api/audit/',
-  path: '/api/audit/',
+const ApiWorkspaceRoute = ApiWorkspaceRouteImport.update({
+  id: '/api/workspace',
+  path: '/api/workspace',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCrewsIndexRoute = ApiCrewsIndexRouteImport.update({
-  id: '/api/crews/',
-  path: '/api/crews/',
+const ApiWorkbenchFilesRoute = ApiWorkbenchFilesRouteImport.update({
+  id: '/api/workbench-files',
+  path: '/api/workbench-files',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCrewsCrewIdRoute = ApiCrewsCrewIdRouteImport.update({
-  id: '/api/crews/$crewId',
-  path: '/api/crews/$crewId',
+const ApiWorkbenchRoute = ApiWorkbenchRouteImport.update({
+  id: '/api/workbench',
+  path: '/api/workbench',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiEventsReplayRoute = ApiEventsReplayRouteImport.update({
-  id: '/replay',
-  path: '/replay',
-  getParentRoute: () => ApiEventsRoute,
-} as any)
-const ApiHermesJobsJobIdRoute = ApiHermesJobsJobIdRouteImport.update({
-  id: '/$jobId',
-  path: '/$jobId',
-  getParentRoute: () => ApiHermesJobsRoute,
-} as any)
-const ApiHermesProxySplatRoute = ApiHermesProxySplatRouteImport.update({
-  id: '/api/hermes-proxy/$',
-  path: '/api/hermes-proxy/$',
+const ApiTerminalStreamRoute = ApiTerminalStreamRouteImport.update({
+  id: '/api/terminal-stream',
+  path: '/api/terminal-stream',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiKnowledgeGraphRoute = ApiKnowledgeGraphRouteImport.update({
-  id: '/api/knowledge/graph',
-  path: '/api/knowledge/graph',
+const ApiTerminalResizeRoute = ApiTerminalResizeRouteImport.update({
+  id: '/api/terminal-resize',
+  path: '/api/terminal-resize',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiKnowledgeListRoute = ApiKnowledgeListRouteImport.update({
-  id: '/api/knowledge/list',
-  path: '/api/knowledge/list',
+const ApiTerminalInputRoute = ApiTerminalInputRouteImport.update({
+  id: '/api/terminal-input',
+  path: '/api/terminal-input',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiKnowledgeReadRoute = ApiKnowledgeReadRouteImport.update({
-  id: '/api/knowledge/read',
-  path: '/api/knowledge/read',
+const ApiTerminalCloseRoute = ApiTerminalCloseRouteImport.update({
+  id: '/api/terminal-close',
+  path: '/api/terminal-close',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiKnowledgeSearchRoute = ApiKnowledgeSearchRouteImport.update({
-  id: '/api/knowledge/search',
-  path: '/api/knowledge/search',
+const ApiSystemdStatusRoute = ApiSystemdStatusRouteImport.update({
+  id: '/api/systemd-status',
+  path: '/api/systemd-status',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiMcpReloadRoute = ApiMcpReloadRouteImport.update({
-  id: '/api/mcp/reload',
-  path: '/api/mcp/reload',
+const ApiSystemdControlRoute = ApiSystemdControlRouteImport.update({
+  id: '/api/systemd-control',
+  path: '/api/systemd-control',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiMcpServersRoute = ApiMcpServersRouteImport.update({
-  id: '/api/mcp/servers',
-  path: '/api/mcp/servers',
+const ApiSystemHealthRoute = ApiSystemHealthRouteImport.update({
+  id: '/api/system-health',
+  path: '/api/system-health',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiMemoryListRoute = ApiMemoryListRouteImport.update({
-  id: '/list',
-  path: '/list',
-  getParentRoute: () => ApiMemoryRoute,
-} as any)
-const ApiMemoryReadRoute = ApiMemoryReadRouteImport.update({
-  id: '/read',
-  path: '/read',
-  getParentRoute: () => ApiMemoryRoute,
-} as any)
-const ApiMemorySearchRoute = ApiMemorySearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => ApiMemoryRoute,
-} as any)
-const ApiMemoryWriteRoute = ApiMemoryWriteRouteImport.update({
-  id: '/write',
-  path: '/write',
-  getParentRoute: () => ApiMemoryRoute,
-} as any)
-const ApiOauthDeviceCodeRoute = ApiOauthDeviceCodeRouteImport.update({
-  id: '/api/oauth/device-code',
-  path: '/api/oauth/device-code',
+const ApiStateAnalyticsRoute = ApiStateAnalyticsRouteImport.update({
+  id: '/api/state-analytics',
+  path: '/api/state-analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiOauthPollTokenRoute = ApiOauthPollTokenRouteImport.update({
-  id: '/api/oauth/poll-token',
-  path: '/api/oauth/poll-token',
+const ApiStartHermesRoute = ApiStartHermesRouteImport.update({
+  id: '/api/start-hermes',
+  path: '/api/start-hermes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStartAgentRoute = ApiStartAgentRouteImport.update({
+  id: '/api/start-agent',
+  path: '/api/start-agent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSkillsRoute = ApiSkillsRouteImport.update({
+  id: '/api/skills',
+  path: '/api/skills',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSessionsRoute = ApiSessionsRouteImport.update({
+  id: '/api/sessions',
+  path: '/api/sessions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSessionStatusRoute = ApiSessionStatusRouteImport.update({
+  id: '/api/session-status',
+  path: '/api/session-status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSendStreamRoute = ApiSendStreamRouteImport.update({
+  id: '/api/send-stream',
+  path: '/api/send-stream',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSendRoute = ApiSendRouteImport.update({
+  id: '/api/send',
+  path: '/api/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProviderUsageRoute = ApiProviderUsageRouteImport.update({
+  id: '/api/provider-usage',
+  path: '/api/provider-usage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPingRoute = ApiPingRouteImport.update({
+  id: '/api/ping',
+  path: '/api/ping',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPathsRoute = ApiPathsRouteImport.update({
+  id: '/api/paths',
+  path: '/api/paths',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiModelsRoute = ApiModelsRouteImport.update({
+  id: '/api/models',
+  path: '/api/models',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMemoryRoute = ApiMemoryRouteImport.update({
+  id: '/api/memory',
+  path: '/api/memory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHistoryRoute = ApiHistoryRouteImport.update({
+  id: '/api/history',
+  path: '/api/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHermesRunsRoute = ApiHermesRunsRouteImport.update({
+  id: '/api/hermes-runs',
+  path: '/api/hermes-runs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHermesJobsRoute = ApiHermesJobsRouteImport.update({
+  id: '/api/hermes-jobs',
+  path: '/api/hermes-jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHermesConfigRoute = ApiHermesConfigRouteImport.update({
+  id: '/api/hermes-config',
+  path: '/api/hermes-config',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGatewayStatusRoute = ApiGatewayStatusRouteImport.update({
+  id: '/api/gateway-status',
+  path: '/api/gateway-status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFilesRoute = ApiFilesRouteImport.update({
+  id: '/api/files',
+  path: '/api/files',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEventsRoute = ApiEventsRouteImport.update({
+  id: '/api/events',
+  path: '/api/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiContextUsageRoute = ApiContextUsageRouteImport.update({
+  id: '/api/context-usage',
+  path: '/api/context-usage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiConnectionStatusRoute = ApiConnectionStatusRouteImport.update({
+  id: '/api/connection-status',
+  path: '/api/connection-status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiConductorStopRoute = ApiConductorStopRouteImport.update({
+  id: '/api/conductor-stop',
+  path: '/api/conductor-stop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiConductorSpawnRoute = ApiConductorSpawnRouteImport.update({
+  id: '/api/conductor-spawn',
+  path: '/api/conductor-spawn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatEventsRoute = ApiChatEventsRouteImport.update({
+  id: '/api/chat-events',
+  path: '/api/chat-events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthCheckRoute = ApiAuthCheckRouteImport.update({
+  id: '/api/auth-check',
+  path: '/api/auth-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthRoute = ApiAuthRouteImport.update({
+  id: '/api/auth',
+  path: '/api/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTasksIndexRoute = ApiTasksIndexRouteImport.update({
+  id: '/api/tasks/',
+  path: '/api/tasks/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOperationsIndexRoute = ApiOperationsIndexRouteImport.update({
@@ -557,64 +464,19 @@ const ApiOperationsIndexRoute = ApiOperationsIndexRouteImport.update({
   path: '/api/operations/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiProfilesActivateRoute = ApiProfilesActivateRouteImport.update({
-  id: '/api/profiles/activate',
-  path: '/api/profiles/activate',
+const ApiCrewsIndexRoute = ApiCrewsIndexRouteImport.update({
+  id: '/api/crews/',
+  path: '/api/crews/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiProfilesCreateRoute = ApiProfilesCreateRouteImport.update({
-  id: '/api/profiles/create',
-  path: '/api/profiles/create',
+const ApiAuditIndexRoute = ApiAuditIndexRouteImport.update({
+  id: '/api/audit/',
+  path: '/api/audit/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiProfilesDeleteRoute = ApiProfilesDeleteRouteImport.update({
-  id: '/api/profiles/delete',
-  path: '/api/profiles/delete',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiProfilesListRoute = ApiProfilesListRouteImport.update({
-  id: '/api/profiles/list',
-  path: '/api/profiles/list',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiProfilesReadRoute = ApiProfilesReadRouteImport.update({
-  id: '/api/profiles/read',
-  path: '/api/profiles/read',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiProfilesRenameRoute = ApiProfilesRenameRouteImport.update({
-  id: '/api/profiles/rename',
-  path: '/api/profiles/rename',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSessionsSendRoute = ApiSessionsSendRouteImport.update({
-  id: '/send',
-  path: '/send',
-  getParentRoute: () => ApiSessionsRoute,
-} as any)
-const ApiSkillsHubSearchRoute = ApiSkillsHubSearchRouteImport.update({
-  id: '/hub-search',
-  path: '/hub-search',
-  getParentRoute: () => ApiSkillsRoute,
-} as any)
-const ApiSkillsInstallRoute = ApiSkillsInstallRouteImport.update({
-  id: '/install',
-  path: '/install',
-  getParentRoute: () => ApiSkillsRoute,
-} as any)
-const ApiSkillsSettingsRoute = ApiSkillsSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => ApiSkillsRoute,
-} as any)
-const ApiSkillsUninstallRoute = ApiSkillsUninstallRouteImport.update({
-  id: '/uninstall',
-  path: '/uninstall',
-  getParentRoute: () => ApiSkillsRoute,
-} as any)
-const ApiTasksIndexRoute = ApiTasksIndexRouteImport.update({
-  id: '/api/tasks/',
-  path: '/api/tasks/',
+const ApiAgentsIndexRoute = ApiAgentsIndexRouteImport.update({
+  id: '/api/agents/',
+  path: '/api/agents/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiTasksTaskIdRoute = ApiTasksTaskIdRouteImport.update({
@@ -622,53 +484,171 @@ const ApiTasksTaskIdRoute = ApiTasksTaskIdRouteImport.update({
   path: '/api/tasks/$taskId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiApprovalsApprovalIdApproveRoute =
-  ApiApprovalsApprovalIdApproveRouteImport.update({
-    id: '/api/approvals/$approvalId/approve',
-    path: '/api/approvals/$approvalId/approve',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiApprovalsApprovalIdDenyRoute =
-  ApiApprovalsApprovalIdDenyRouteImport.update({
-    id: '/api/approvals/$approvalId/deny',
-    path: '/api/approvals/$approvalId/deny',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiCrewsCrewIdCloneRoute = ApiCrewsCrewIdCloneRouteImport.update({
-  id: '/clone',
-  path: '/clone',
-  getParentRoute: () => ApiCrewsCrewIdRoute,
+const ApiSkillsUninstallRoute = ApiSkillsUninstallRouteImport.update({
+  id: '/uninstall',
+  path: '/uninstall',
+  getParentRoute: () => ApiSkillsRoute,
 } as any)
-const ApiCrewsCrewIdDispatchRoute = ApiCrewsCrewIdDispatchRouteImport.update({
-  id: '/dispatch',
-  path: '/dispatch',
-  getParentRoute: () => ApiCrewsCrewIdRoute,
+const ApiSkillsSettingsRoute = ApiSkillsSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => ApiSkillsRoute,
 } as any)
-const ApiCrewsCrewIdUsageRoute = ApiCrewsCrewIdUsageRouteImport.update({
-  id: '/usage',
-  path: '/usage',
-  getParentRoute: () => ApiCrewsCrewIdRoute,
+const ApiSkillsInstallRoute = ApiSkillsInstallRouteImport.update({
+  id: '/install',
+  path: '/install',
+  getParentRoute: () => ApiSkillsRoute,
 } as any)
-const ApiCrewsCrewIdWorkflowRoute = ApiCrewsCrewIdWorkflowRouteImport.update({
-  id: '/workflow',
-  path: '/workflow',
-  getParentRoute: () => ApiCrewsCrewIdRoute,
+const ApiSkillsHubSearchRoute = ApiSkillsHubSearchRouteImport.update({
+  id: '/hub-search',
+  path: '/hub-search',
+  getParentRoute: () => ApiSkillsRoute,
+} as any)
+const ApiSessionsSendRoute = ApiSessionsSendRouteImport.update({
+  id: '/send',
+  path: '/send',
+  getParentRoute: () => ApiSessionsRoute,
+} as any)
+const ApiProfilesRenameRoute = ApiProfilesRenameRouteImport.update({
+  id: '/api/profiles/rename',
+  path: '/api/profiles/rename',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProfilesReadRoute = ApiProfilesReadRouteImport.update({
+  id: '/api/profiles/read',
+  path: '/api/profiles/read',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProfilesListRoute = ApiProfilesListRouteImport.update({
+  id: '/api/profiles/list',
+  path: '/api/profiles/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProfilesDeleteRoute = ApiProfilesDeleteRouteImport.update({
+  id: '/api/profiles/delete',
+  path: '/api/profiles/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProfilesCreateRoute = ApiProfilesCreateRouteImport.update({
+  id: '/api/profiles/create',
+  path: '/api/profiles/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProfilesActivateRoute = ApiProfilesActivateRouteImport.update({
+  id: '/api/profiles/activate',
+  path: '/api/profiles/activate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOauthPollTokenRoute = ApiOauthPollTokenRouteImport.update({
+  id: '/api/oauth/poll-token',
+  path: '/api/oauth/poll-token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOauthDeviceCodeRoute = ApiOauthDeviceCodeRouteImport.update({
+  id: '/api/oauth/device-code',
+  path: '/api/oauth/device-code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMemoryWriteRoute = ApiMemoryWriteRouteImport.update({
+  id: '/write',
+  path: '/write',
+  getParentRoute: () => ApiMemoryRoute,
+} as any)
+const ApiMemorySearchRoute = ApiMemorySearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => ApiMemoryRoute,
+} as any)
+const ApiMemoryReadRoute = ApiMemoryReadRouteImport.update({
+  id: '/read',
+  path: '/read',
+  getParentRoute: () => ApiMemoryRoute,
+} as any)
+const ApiMemoryListRoute = ApiMemoryListRouteImport.update({
+  id: '/list',
+  path: '/list',
+  getParentRoute: () => ApiMemoryRoute,
+} as any)
+const ApiMcpServersRoute = ApiMcpServersRouteImport.update({
+  id: '/api/mcp/servers',
+  path: '/api/mcp/servers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMcpReloadRoute = ApiMcpReloadRouteImport.update({
+  id: '/api/mcp/reload',
+  path: '/api/mcp/reload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKnowledgeVaultRoute = ApiKnowledgeVaultRouteImport.update({
+  id: '/api/knowledge/vault',
+  path: '/api/knowledge/vault',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKnowledgeSyncRoute = ApiKnowledgeSyncRouteImport.update({
+  id: '/api/knowledge/sync',
+  path: '/api/knowledge/sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKnowledgeSearchRoute = ApiKnowledgeSearchRouteImport.update({
+  id: '/api/knowledge/search',
+  path: '/api/knowledge/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKnowledgeReadRoute = ApiKnowledgeReadRouteImport.update({
+  id: '/api/knowledge/read',
+  path: '/api/knowledge/read',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKnowledgeListRoute = ApiKnowledgeListRouteImport.update({
+  id: '/api/knowledge/list',
+  path: '/api/knowledge/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKnowledgeGraphRoute = ApiKnowledgeGraphRouteImport.update({
+  id: '/api/knowledge/graph',
+  path: '/api/knowledge/graph',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHermesProxySplatRoute = ApiHermesProxySplatRouteImport.update({
+  id: '/api/hermes-proxy/$',
+  path: '/api/hermes-proxy/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHermesJobsJobIdRoute = ApiHermesJobsJobIdRouteImport.update({
+  id: '/$jobId',
+  path: '/$jobId',
+  getParentRoute: () => ApiHermesJobsRoute,
+} as any)
+const ApiEventsReplayRoute = ApiEventsReplayRouteImport.update({
+  id: '/replay',
+  path: '/replay',
+  getParentRoute: () => ApiEventsRoute,
+} as any)
+const ApiCrewsCrewIdRoute = ApiCrewsCrewIdRouteImport.update({
+  id: '/api/crews/$crewId',
+  path: '/api/crews/$crewId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAgentsAgentIdRoute = ApiAgentsAgentIdRouteImport.update({
+  id: '/api/agents/$agentId',
+  path: '/api/agents/$agentId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCrewsTemplatesIndexRoute = ApiCrewsTemplatesIndexRouteImport.update({
   id: '/api/crews/templates/',
   path: '/api/crews/templates/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCrewsTemplatesIdRoute = ApiCrewsTemplatesIdRouteImport.update({
-  id: '/api/crews/templates/$id',
-  path: '/api/crews/templates/$id',
-  getParentRoute: () => rootRouteImport,
+const ApiTasksTaskIdMoveRoute = ApiTasksTaskIdMoveRouteImport.update({
+  id: '/move',
+  path: '/move',
+  getParentRoute: () => ApiTasksTaskIdRoute,
 } as any)
-const ApiHermesRunsRunIdEventsRoute =
-  ApiHermesRunsRunIdEventsRouteImport.update({
-    id: '/$runId/events',
-    path: '/$runId/events',
-    getParentRoute: () => ApiHermesRunsRoute,
+const ApiSessionsSessionKeyStatusRoute =
+  ApiSessionsSessionKeyStatusRouteImport.update({
+    id: '/$sessionKey/status',
+    path: '/$sessionKey/status',
+    getParentRoute: () => ApiSessionsRoute,
   } as any)
 const ApiSessionsSessionKeyActiveRunRoute =
   ApiSessionsSessionKeyActiveRunRouteImport.update({
@@ -676,17 +656,49 @@ const ApiSessionsSessionKeyActiveRunRoute =
     path: '/$sessionKey/active-run',
     getParentRoute: () => ApiSessionsRoute,
   } as any)
-const ApiSessionsSessionKeyStatusRoute =
-  ApiSessionsSessionKeyStatusRouteImport.update({
-    id: '/$sessionKey/status',
-    path: '/$sessionKey/status',
-    getParentRoute: () => ApiSessionsRoute,
+const ApiHermesRunsRunIdEventsRoute =
+  ApiHermesRunsRunIdEventsRouteImport.update({
+    id: '/$runId/events',
+    path: '/$runId/events',
+    getParentRoute: () => ApiHermesRunsRoute,
   } as any)
-const ApiTasksTaskIdMoveRoute = ApiTasksTaskIdMoveRouteImport.update({
-  id: '/move',
-  path: '/move',
-  getParentRoute: () => ApiTasksTaskIdRoute,
+const ApiCrewsTemplatesIdRoute = ApiCrewsTemplatesIdRouteImport.update({
+  id: '/api/crews/templates/$id',
+  path: '/api/crews/templates/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCrewsCrewIdWorkflowRoute = ApiCrewsCrewIdWorkflowRouteImport.update({
+  id: '/workflow',
+  path: '/workflow',
+  getParentRoute: () => ApiCrewsCrewIdRoute,
+} as any)
+const ApiCrewsCrewIdUsageRoute = ApiCrewsCrewIdUsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => ApiCrewsCrewIdRoute,
+} as any)
+const ApiCrewsCrewIdDispatchRoute = ApiCrewsCrewIdDispatchRouteImport.update({
+  id: '/dispatch',
+  path: '/dispatch',
+  getParentRoute: () => ApiCrewsCrewIdRoute,
+} as any)
+const ApiCrewsCrewIdCloneRoute = ApiCrewsCrewIdCloneRouteImport.update({
+  id: '/clone',
+  path: '/clone',
+  getParentRoute: () => ApiCrewsCrewIdRoute,
+} as any)
+const ApiApprovalsApprovalIdDenyRoute =
+  ApiApprovalsApprovalIdDenyRouteImport.update({
+    id: '/api/approvals/$approvalId/deny',
+    path: '/api/approvals/$approvalId/deny',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiApprovalsApprovalIdApproveRoute =
+  ApiApprovalsApprovalIdApproveRouteImport.update({
+    id: '/api/approvals/$approvalId/approve',
+    path: '/api/approvals/$approvalId/approve',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -764,6 +776,8 @@ export interface FileRoutesByFullPath {
   '/api/knowledge/list': typeof ApiKnowledgeListRoute
   '/api/knowledge/read': typeof ApiKnowledgeReadRoute
   '/api/knowledge/search': typeof ApiKnowledgeSearchRoute
+  '/api/knowledge/sync': typeof ApiKnowledgeSyncRoute
+  '/api/knowledge/vault': typeof ApiKnowledgeVaultRoute
   '/api/mcp/reload': typeof ApiMcpReloadRoute
   '/api/mcp/servers': typeof ApiMcpServersRoute
   '/api/memory/list': typeof ApiMemoryListRoute
@@ -877,6 +891,8 @@ export interface FileRoutesByTo {
   '/api/knowledge/list': typeof ApiKnowledgeListRoute
   '/api/knowledge/read': typeof ApiKnowledgeReadRoute
   '/api/knowledge/search': typeof ApiKnowledgeSearchRoute
+  '/api/knowledge/sync': typeof ApiKnowledgeSyncRoute
+  '/api/knowledge/vault': typeof ApiKnowledgeVaultRoute
   '/api/mcp/reload': typeof ApiMcpReloadRoute
   '/api/mcp/servers': typeof ApiMcpServersRoute
   '/api/memory/list': typeof ApiMemoryListRoute
@@ -992,6 +1008,8 @@ export interface FileRoutesById {
   '/api/knowledge/list': typeof ApiKnowledgeListRoute
   '/api/knowledge/read': typeof ApiKnowledgeReadRoute
   '/api/knowledge/search': typeof ApiKnowledgeSearchRoute
+  '/api/knowledge/sync': typeof ApiKnowledgeSyncRoute
+  '/api/knowledge/vault': typeof ApiKnowledgeVaultRoute
   '/api/mcp/reload': typeof ApiMcpReloadRoute
   '/api/mcp/servers': typeof ApiMcpServersRoute
   '/api/memory/list': typeof ApiMemoryListRoute
@@ -1108,6 +1126,8 @@ export interface FileRouteTypes {
     | '/api/knowledge/list'
     | '/api/knowledge/read'
     | '/api/knowledge/search'
+    | '/api/knowledge/sync'
+    | '/api/knowledge/vault'
     | '/api/mcp/reload'
     | '/api/mcp/servers'
     | '/api/memory/list'
@@ -1221,6 +1241,8 @@ export interface FileRouteTypes {
     | '/api/knowledge/list'
     | '/api/knowledge/read'
     | '/api/knowledge/search'
+    | '/api/knowledge/sync'
+    | '/api/knowledge/vault'
     | '/api/mcp/reload'
     | '/api/mcp/servers'
     | '/api/memory/list'
@@ -1335,6 +1357,8 @@ export interface FileRouteTypes {
     | '/api/knowledge/list'
     | '/api/knowledge/read'
     | '/api/knowledge/search'
+    | '/api/knowledge/sync'
+    | '/api/knowledge/vault'
     | '/api/mcp/reload'
     | '/api/mcp/servers'
     | '/api/memory/list'
@@ -1445,6 +1469,8 @@ export interface RootRouteChildren {
   ApiKnowledgeListRoute: typeof ApiKnowledgeListRoute
   ApiKnowledgeReadRoute: typeof ApiKnowledgeReadRoute
   ApiKnowledgeSearchRoute: typeof ApiKnowledgeSearchRoute
+  ApiKnowledgeSyncRoute: typeof ApiKnowledgeSyncRoute
+  ApiKnowledgeVaultRoute: typeof ApiKnowledgeVaultRoute
   ApiMcpReloadRoute: typeof ApiMcpReloadRoute
   ApiMcpServersRoute: typeof ApiMcpServersRoute
   ApiOauthDeviceCodeRoute: typeof ApiOauthDeviceCodeRoute
@@ -1469,144 +1495,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$': {
-      id: '/$'
-      path: '/$'
-      fullPath: '/$'
-      preLoaderRoute: typeof SplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/agents': {
-      id: '/agents'
-      path: '/agents'
-      fullPath: '/agents'
-      preLoaderRoute: typeof AgentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/analytics': {
-      id: '/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/audit': {
-      id: '/audit'
-      path: '/audit'
-      fullPath: '/audit'
-      preLoaderRoute: typeof AuditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/conductor': {
-      id: '/conductor'
-      path: '/conductor'
-      fullPath: '/conductor'
-      preLoaderRoute: typeof ConductorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/docs': {
-      id: '/docs'
-      path: '/docs'
-      fullPath: '/docs'
-      preLoaderRoute: typeof DocsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/files': {
-      id: '/files'
-      path: '/files'
-      fullPath: '/files'
-      preLoaderRoute: typeof FilesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/help': {
-      id: '/help'
-      path: '/help'
-      fullPath: '/help'
-      preLoaderRoute: typeof HelpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/jobs': {
-      id: '/jobs'
-      path: '/jobs'
-      fullPath: '/jobs'
-      preLoaderRoute: typeof JobsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/logs': {
-      id: '/logs'
-      path: '/logs'
-      fullPath: '/logs'
-      preLoaderRoute: typeof LogsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/memory': {
-      id: '/memory'
-      path: '/memory'
-      fullPath: '/memory'
-      preLoaderRoute: typeof MemoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/operations': {
-      id: '/operations'
-      path: '/operations'
-      fullPath: '/operations'
-      preLoaderRoute: typeof OperationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/patterns': {
-      id: '/patterns'
-      path: '/patterns'
-      fullPath: '/patterns'
-      preLoaderRoute: typeof PatternsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profiles': {
-      id: '/profiles'
-      path: '/profiles'
-      fullPath: '/profiles'
-      preLoaderRoute: typeof ProfilesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/projects': {
-      id: '/projects'
-      path: '/projects'
-      fullPath: '/projects'
-      preLoaderRoute: typeof ProjectsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/session-history': {
-      id: '/session-history'
-      path: '/session-history'
-      fullPath: '/session-history'
-      preLoaderRoute: typeof SessionHistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/skills': {
-      id: '/skills'
-      path: '/skills'
-      fullPath: '/skills'
-      preLoaderRoute: typeof SkillsRouteImport
+    '/terminal': {
+      id: '/terminal'
+      path: '/terminal'
+      fullPath: '/terminal'
+      preLoaderRoute: typeof TerminalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tasks': {
@@ -1616,298 +1509,144 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TasksRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/terminal': {
-      id: '/terminal'
-      path: '/terminal'
-      fullPath: '/terminal'
-      preLoaderRoute: typeof TerminalRouteImport
+    '/skills': {
+      id: '/skills'
+      path: '/skills'
+      fullPath: '/skills'
+      preLoaderRoute: typeof SkillsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/auth': {
-      id: '/api/auth'
-      path: '/api/auth'
-      fullPath: '/api/auth'
-      preLoaderRoute: typeof ApiAuthRouteImport
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/auth-check': {
-      id: '/api/auth-check'
-      path: '/api/auth-check'
-      fullPath: '/api/auth-check'
-      preLoaderRoute: typeof ApiAuthCheckRouteImport
+    '/session-history': {
+      id: '/session-history'
+      path: '/session-history'
+      fullPath: '/session-history'
+      preLoaderRoute: typeof SessionHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/chat-events': {
-      id: '/api/chat-events'
-      path: '/api/chat-events'
-      fullPath: '/api/chat-events'
-      preLoaderRoute: typeof ApiChatEventsRouteImport
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/conductor-spawn': {
-      id: '/api/conductor-spawn'
-      path: '/api/conductor-spawn'
-      fullPath: '/api/conductor-spawn'
-      preLoaderRoute: typeof ApiConductorSpawnRouteImport
+    '/profiles': {
+      id: '/profiles'
+      path: '/profiles'
+      fullPath: '/profiles'
+      preLoaderRoute: typeof ProfilesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/conductor-stop': {
-      id: '/api/conductor-stop'
-      path: '/api/conductor-stop'
-      fullPath: '/api/conductor-stop'
-      preLoaderRoute: typeof ApiConductorStopRouteImport
+    '/patterns': {
+      id: '/patterns'
+      path: '/patterns'
+      fullPath: '/patterns'
+      preLoaderRoute: typeof PatternsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/connection-status': {
-      id: '/api/connection-status'
-      path: '/api/connection-status'
-      fullPath: '/api/connection-status'
-      preLoaderRoute: typeof ApiConnectionStatusRouteImport
+    '/operations': {
+      id: '/operations'
+      path: '/operations'
+      fullPath: '/operations'
+      preLoaderRoute: typeof OperationsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/context-usage': {
-      id: '/api/context-usage'
-      path: '/api/context-usage'
-      fullPath: '/api/context-usage'
-      preLoaderRoute: typeof ApiContextUsageRouteImport
+    '/memory': {
+      id: '/memory'
+      path: '/memory'
+      fullPath: '/memory'
+      preLoaderRoute: typeof MemoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/events': {
-      id: '/api/events'
-      path: '/api/events'
-      fullPath: '/api/events'
-      preLoaderRoute: typeof ApiEventsRouteImport
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/files': {
-      id: '/api/files'
-      path: '/api/files'
-      fullPath: '/api/files'
-      preLoaderRoute: typeof ApiFilesRouteImport
+    '/jobs': {
+      id: '/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof JobsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/gateway-status': {
-      id: '/api/gateway-status'
-      path: '/api/gateway-status'
-      fullPath: '/api/gateway-status'
-      preLoaderRoute: typeof ApiGatewayStatusRouteImport
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/hermes-config': {
-      id: '/api/hermes-config'
-      path: '/api/hermes-config'
-      fullPath: '/api/hermes-config'
-      preLoaderRoute: typeof ApiHermesConfigRouteImport
+    '/files': {
+      id: '/files'
+      path: '/files'
+      fullPath: '/files'
+      preLoaderRoute: typeof FilesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/hermes-jobs': {
-      id: '/api/hermes-jobs'
-      path: '/api/hermes-jobs'
-      fullPath: '/api/hermes-jobs'
-      preLoaderRoute: typeof ApiHermesJobsRouteImport
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/hermes-runs': {
-      id: '/api/hermes-runs'
-      path: '/api/hermes-runs'
-      fullPath: '/api/hermes-runs'
-      preLoaderRoute: typeof ApiHermesRunsRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/history': {
-      id: '/api/history'
-      path: '/api/history'
-      fullPath: '/api/history'
-      preLoaderRoute: typeof ApiHistoryRouteImport
+    '/conductor': {
+      id: '/conductor'
+      path: '/conductor'
+      fullPath: '/conductor'
+      preLoaderRoute: typeof ConductorRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/memory': {
-      id: '/api/memory'
-      path: '/api/memory'
-      fullPath: '/api/memory'
-      preLoaderRoute: typeof ApiMemoryRouteImport
+    '/audit': {
+      id: '/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuditRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/models': {
-      id: '/api/models'
-      path: '/api/models'
-      fullPath: '/api/models'
-      preLoaderRoute: typeof ApiModelsRouteImport
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/paths': {
-      id: '/api/paths'
-      path: '/api/paths'
-      fullPath: '/api/paths'
-      preLoaderRoute: typeof ApiPathsRouteImport
+    '/agents': {
+      id: '/agents'
+      path: '/agents'
+      fullPath: '/agents'
+      preLoaderRoute: typeof AgentsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/ping': {
-      id: '/api/ping'
-      path: '/api/ping'
-      fullPath: '/api/ping'
-      preLoaderRoute: typeof ApiPingRouteImport
+    '/$': {
+      id: '/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/provider-usage': {
-      id: '/api/provider-usage'
-      path: '/api/provider-usage'
-      fullPath: '/api/provider-usage'
-      preLoaderRoute: typeof ApiProviderUsageRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/send': {
-      id: '/api/send'
-      path: '/api/send'
-      fullPath: '/api/send'
-      preLoaderRoute: typeof ApiSendRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/send-stream': {
-      id: '/api/send-stream'
-      path: '/api/send-stream'
-      fullPath: '/api/send-stream'
-      preLoaderRoute: typeof ApiSendStreamRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/session-status': {
-      id: '/api/session-status'
-      path: '/api/session-status'
-      fullPath: '/api/session-status'
-      preLoaderRoute: typeof ApiSessionStatusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/sessions': {
-      id: '/api/sessions'
-      path: '/api/sessions'
-      fullPath: '/api/sessions'
-      preLoaderRoute: typeof ApiSessionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/skills': {
-      id: '/api/skills'
-      path: '/api/skills'
-      fullPath: '/api/skills'
-      preLoaderRoute: typeof ApiSkillsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/start-agent': {
-      id: '/api/start-agent'
-      path: '/api/start-agent'
-      fullPath: '/api/start-agent'
-      preLoaderRoute: typeof ApiStartAgentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/start-hermes': {
-      id: '/api/start-hermes'
-      path: '/api/start-hermes'
-      fullPath: '/api/start-hermes'
-      preLoaderRoute: typeof ApiStartHermesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/state-analytics': {
-      id: '/api/state-analytics'
-      path: '/api/state-analytics'
-      fullPath: '/api/state-analytics'
-      preLoaderRoute: typeof ApiStateAnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/system-health': {
-      id: '/api/system-health'
-      path: '/api/system-health'
-      fullPath: '/api/system-health'
-      preLoaderRoute: typeof ApiSystemHealthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/systemd-control': {
-      id: '/api/systemd-control'
-      path: '/api/systemd-control'
-      fullPath: '/api/systemd-control'
-      preLoaderRoute: typeof ApiSystemdControlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/systemd-status': {
-      id: '/api/systemd-status'
-      path: '/api/systemd-status'
-      fullPath: '/api/systemd-status'
-      preLoaderRoute: typeof ApiSystemdStatusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/terminal-close': {
-      id: '/api/terminal-close'
-      path: '/api/terminal-close'
-      fullPath: '/api/terminal-close'
-      preLoaderRoute: typeof ApiTerminalCloseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/terminal-input': {
-      id: '/api/terminal-input'
-      path: '/api/terminal-input'
-      fullPath: '/api/terminal-input'
-      preLoaderRoute: typeof ApiTerminalInputRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/terminal-resize': {
-      id: '/api/terminal-resize'
-      path: '/api/terminal-resize'
-      fullPath: '/api/terminal-resize'
-      preLoaderRoute: typeof ApiTerminalResizeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/terminal-stream': {
-      id: '/api/terminal-stream'
-      path: '/api/terminal-stream'
-      fullPath: '/api/terminal-stream'
-      preLoaderRoute: typeof ApiTerminalStreamRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/workbench': {
-      id: '/api/workbench'
-      path: '/api/workbench'
-      fullPath: '/api/workbench'
-      preLoaderRoute: typeof ApiWorkbenchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/workbench-files': {
-      id: '/api/workbench-files'
-      path: '/api/workbench-files'
-      fullPath: '/api/workbench-files'
-      preLoaderRoute: typeof ApiWorkbenchFilesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/workspace': {
-      id: '/api/workspace'
-      path: '/api/workspace'
-      fullPath: '/api/workspace'
-      preLoaderRoute: typeof ApiWorkspaceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/chat/': {
-      id: '/chat/'
-      path: '/chat'
-      fullPath: '/chat/'
-      preLoaderRoute: typeof ChatIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/chat/$sessionKey': {
-      id: '/chat/$sessionKey'
-      path: '/chat/$sessionKey'
-      fullPath: '/chat/$sessionKey'
-      preLoaderRoute: typeof ChatSessionKeyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/crews/': {
-      id: '/crews/'
-      path: '/crews'
-      fullPath: '/crews/'
-      preLoaderRoute: typeof CrewsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/crews/$crewId': {
-      id: '/crews/$crewId'
-      path: '/crews/$crewId'
-      fullPath: '/crews/$crewId'
-      preLoaderRoute: typeof CrewsCrewIdRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings/': {
@@ -1917,12 +1656,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof SettingsRoute
     }
-    '/settings/mcp': {
-      id: '/settings/mcp'
-      path: '/mcp'
-      fullPath: '/settings/mcp'
-      preLoaderRoute: typeof SettingsMcpRouteImport
-      parentRoute: typeof SettingsRoute
+    '/crews/': {
+      id: '/crews/'
+      path: '/crews'
+      fullPath: '/crews/'
+      preLoaderRoute: typeof CrewsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat/': {
+      id: '/chat/'
+      path: '/chat'
+      fullPath: '/chat/'
+      preLoaderRoute: typeof ChatIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/settings/providers': {
       id: '/settings/providers'
@@ -1931,144 +1677,291 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsProvidersRouteImport
       parentRoute: typeof SettingsRoute
     }
-    '/api/agents/': {
-      id: '/api/agents/'
-      path: '/api/agents'
-      fullPath: '/api/agents/'
-      preLoaderRoute: typeof ApiAgentsIndexRouteImport
+    '/settings/mcp': {
+      id: '/settings/mcp'
+      path: '/mcp'
+      fullPath: '/settings/mcp'
+      preLoaderRoute: typeof SettingsMcpRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/crews/$crewId': {
+      id: '/crews/$crewId'
+      path: '/crews/$crewId'
+      fullPath: '/crews/$crewId'
+      preLoaderRoute: typeof CrewsCrewIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/agents/$agentId': {
-      id: '/api/agents/$agentId'
-      path: '/api/agents/$agentId'
-      fullPath: '/api/agents/$agentId'
-      preLoaderRoute: typeof ApiAgentsAgentIdRouteImport
+    '/chat/$sessionKey': {
+      id: '/chat/$sessionKey'
+      path: '/chat/$sessionKey'
+      fullPath: '/chat/$sessionKey'
+      preLoaderRoute: typeof ChatSessionKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/audit/': {
-      id: '/api/audit/'
-      path: '/api/audit'
-      fullPath: '/api/audit/'
-      preLoaderRoute: typeof ApiAuditIndexRouteImport
+    '/api/workspace': {
+      id: '/api/workspace'
+      path: '/api/workspace'
+      fullPath: '/api/workspace'
+      preLoaderRoute: typeof ApiWorkspaceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/crews/': {
-      id: '/api/crews/'
-      path: '/api/crews'
-      fullPath: '/api/crews/'
-      preLoaderRoute: typeof ApiCrewsIndexRouteImport
+    '/api/workbench-files': {
+      id: '/api/workbench-files'
+      path: '/api/workbench-files'
+      fullPath: '/api/workbench-files'
+      preLoaderRoute: typeof ApiWorkbenchFilesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/crews/$crewId': {
-      id: '/api/crews/$crewId'
-      path: '/api/crews/$crewId'
-      fullPath: '/api/crews/$crewId'
-      preLoaderRoute: typeof ApiCrewsCrewIdRouteImport
+    '/api/workbench': {
+      id: '/api/workbench'
+      path: '/api/workbench'
+      fullPath: '/api/workbench'
+      preLoaderRoute: typeof ApiWorkbenchRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/events/replay': {
-      id: '/api/events/replay'
-      path: '/replay'
-      fullPath: '/api/events/replay'
-      preLoaderRoute: typeof ApiEventsReplayRouteImport
-      parentRoute: typeof ApiEventsRoute
-    }
-    '/api/hermes-jobs/$jobId': {
-      id: '/api/hermes-jobs/$jobId'
-      path: '/$jobId'
-      fullPath: '/api/hermes-jobs/$jobId'
-      preLoaderRoute: typeof ApiHermesJobsJobIdRouteImport
-      parentRoute: typeof ApiHermesJobsRoute
-    }
-    '/api/hermes-proxy/$': {
-      id: '/api/hermes-proxy/$'
-      path: '/api/hermes-proxy/$'
-      fullPath: '/api/hermes-proxy/$'
-      preLoaderRoute: typeof ApiHermesProxySplatRouteImport
+    '/api/terminal-stream': {
+      id: '/api/terminal-stream'
+      path: '/api/terminal-stream'
+      fullPath: '/api/terminal-stream'
+      preLoaderRoute: typeof ApiTerminalStreamRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/knowledge/graph': {
-      id: '/api/knowledge/graph'
-      path: '/api/knowledge/graph'
-      fullPath: '/api/knowledge/graph'
-      preLoaderRoute: typeof ApiKnowledgeGraphRouteImport
+    '/api/terminal-resize': {
+      id: '/api/terminal-resize'
+      path: '/api/terminal-resize'
+      fullPath: '/api/terminal-resize'
+      preLoaderRoute: typeof ApiTerminalResizeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/knowledge/list': {
-      id: '/api/knowledge/list'
-      path: '/api/knowledge/list'
-      fullPath: '/api/knowledge/list'
-      preLoaderRoute: typeof ApiKnowledgeListRouteImport
+    '/api/terminal-input': {
+      id: '/api/terminal-input'
+      path: '/api/terminal-input'
+      fullPath: '/api/terminal-input'
+      preLoaderRoute: typeof ApiTerminalInputRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/knowledge/read': {
-      id: '/api/knowledge/read'
-      path: '/api/knowledge/read'
-      fullPath: '/api/knowledge/read'
-      preLoaderRoute: typeof ApiKnowledgeReadRouteImport
+    '/api/terminal-close': {
+      id: '/api/terminal-close'
+      path: '/api/terminal-close'
+      fullPath: '/api/terminal-close'
+      preLoaderRoute: typeof ApiTerminalCloseRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/knowledge/search': {
-      id: '/api/knowledge/search'
-      path: '/api/knowledge/search'
-      fullPath: '/api/knowledge/search'
-      preLoaderRoute: typeof ApiKnowledgeSearchRouteImport
+    '/api/systemd-status': {
+      id: '/api/systemd-status'
+      path: '/api/systemd-status'
+      fullPath: '/api/systemd-status'
+      preLoaderRoute: typeof ApiSystemdStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/mcp/reload': {
-      id: '/api/mcp/reload'
-      path: '/api/mcp/reload'
-      fullPath: '/api/mcp/reload'
-      preLoaderRoute: typeof ApiMcpReloadRouteImport
+    '/api/systemd-control': {
+      id: '/api/systemd-control'
+      path: '/api/systemd-control'
+      fullPath: '/api/systemd-control'
+      preLoaderRoute: typeof ApiSystemdControlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/mcp/servers': {
-      id: '/api/mcp/servers'
-      path: '/api/mcp/servers'
-      fullPath: '/api/mcp/servers'
-      preLoaderRoute: typeof ApiMcpServersRouteImport
+    '/api/system-health': {
+      id: '/api/system-health'
+      path: '/api/system-health'
+      fullPath: '/api/system-health'
+      preLoaderRoute: typeof ApiSystemHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/memory/list': {
-      id: '/api/memory/list'
-      path: '/list'
-      fullPath: '/api/memory/list'
-      preLoaderRoute: typeof ApiMemoryListRouteImport
-      parentRoute: typeof ApiMemoryRoute
-    }
-    '/api/memory/read': {
-      id: '/api/memory/read'
-      path: '/read'
-      fullPath: '/api/memory/read'
-      preLoaderRoute: typeof ApiMemoryReadRouteImport
-      parentRoute: typeof ApiMemoryRoute
-    }
-    '/api/memory/search': {
-      id: '/api/memory/search'
-      path: '/search'
-      fullPath: '/api/memory/search'
-      preLoaderRoute: typeof ApiMemorySearchRouteImport
-      parentRoute: typeof ApiMemoryRoute
-    }
-    '/api/memory/write': {
-      id: '/api/memory/write'
-      path: '/write'
-      fullPath: '/api/memory/write'
-      preLoaderRoute: typeof ApiMemoryWriteRouteImport
-      parentRoute: typeof ApiMemoryRoute
-    }
-    '/api/oauth/device-code': {
-      id: '/api/oauth/device-code'
-      path: '/api/oauth/device-code'
-      fullPath: '/api/oauth/device-code'
-      preLoaderRoute: typeof ApiOauthDeviceCodeRouteImport
+    '/api/state-analytics': {
+      id: '/api/state-analytics'
+      path: '/api/state-analytics'
+      fullPath: '/api/state-analytics'
+      preLoaderRoute: typeof ApiStateAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/oauth/poll-token': {
-      id: '/api/oauth/poll-token'
-      path: '/api/oauth/poll-token'
-      fullPath: '/api/oauth/poll-token'
-      preLoaderRoute: typeof ApiOauthPollTokenRouteImport
+    '/api/start-hermes': {
+      id: '/api/start-hermes'
+      path: '/api/start-hermes'
+      fullPath: '/api/start-hermes'
+      preLoaderRoute: typeof ApiStartHermesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/start-agent': {
+      id: '/api/start-agent'
+      path: '/api/start-agent'
+      fullPath: '/api/start-agent'
+      preLoaderRoute: typeof ApiStartAgentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/skills': {
+      id: '/api/skills'
+      path: '/api/skills'
+      fullPath: '/api/skills'
+      preLoaderRoute: typeof ApiSkillsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sessions': {
+      id: '/api/sessions'
+      path: '/api/sessions'
+      fullPath: '/api/sessions'
+      preLoaderRoute: typeof ApiSessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/session-status': {
+      id: '/api/session-status'
+      path: '/api/session-status'
+      fullPath: '/api/session-status'
+      preLoaderRoute: typeof ApiSessionStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/send-stream': {
+      id: '/api/send-stream'
+      path: '/api/send-stream'
+      fullPath: '/api/send-stream'
+      preLoaderRoute: typeof ApiSendStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/send': {
+      id: '/api/send'
+      path: '/api/send'
+      fullPath: '/api/send'
+      preLoaderRoute: typeof ApiSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/provider-usage': {
+      id: '/api/provider-usage'
+      path: '/api/provider-usage'
+      fullPath: '/api/provider-usage'
+      preLoaderRoute: typeof ApiProviderUsageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ping': {
+      id: '/api/ping'
+      path: '/api/ping'
+      fullPath: '/api/ping'
+      preLoaderRoute: typeof ApiPingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/paths': {
+      id: '/api/paths'
+      path: '/api/paths'
+      fullPath: '/api/paths'
+      preLoaderRoute: typeof ApiPathsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/models': {
+      id: '/api/models'
+      path: '/api/models'
+      fullPath: '/api/models'
+      preLoaderRoute: typeof ApiModelsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/memory': {
+      id: '/api/memory'
+      path: '/api/memory'
+      fullPath: '/api/memory'
+      preLoaderRoute: typeof ApiMemoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/history': {
+      id: '/api/history'
+      path: '/api/history'
+      fullPath: '/api/history'
+      preLoaderRoute: typeof ApiHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/hermes-runs': {
+      id: '/api/hermes-runs'
+      path: '/api/hermes-runs'
+      fullPath: '/api/hermes-runs'
+      preLoaderRoute: typeof ApiHermesRunsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/hermes-jobs': {
+      id: '/api/hermes-jobs'
+      path: '/api/hermes-jobs'
+      fullPath: '/api/hermes-jobs'
+      preLoaderRoute: typeof ApiHermesJobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/hermes-config': {
+      id: '/api/hermes-config'
+      path: '/api/hermes-config'
+      fullPath: '/api/hermes-config'
+      preLoaderRoute: typeof ApiHermesConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/gateway-status': {
+      id: '/api/gateway-status'
+      path: '/api/gateway-status'
+      fullPath: '/api/gateway-status'
+      preLoaderRoute: typeof ApiGatewayStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/files': {
+      id: '/api/files'
+      path: '/api/files'
+      fullPath: '/api/files'
+      preLoaderRoute: typeof ApiFilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/events': {
+      id: '/api/events'
+      path: '/api/events'
+      fullPath: '/api/events'
+      preLoaderRoute: typeof ApiEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/context-usage': {
+      id: '/api/context-usage'
+      path: '/api/context-usage'
+      fullPath: '/api/context-usage'
+      preLoaderRoute: typeof ApiContextUsageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/connection-status': {
+      id: '/api/connection-status'
+      path: '/api/connection-status'
+      fullPath: '/api/connection-status'
+      preLoaderRoute: typeof ApiConnectionStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/conductor-stop': {
+      id: '/api/conductor-stop'
+      path: '/api/conductor-stop'
+      fullPath: '/api/conductor-stop'
+      preLoaderRoute: typeof ApiConductorStopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/conductor-spawn': {
+      id: '/api/conductor-spawn'
+      path: '/api/conductor-spawn'
+      fullPath: '/api/conductor-spawn'
+      preLoaderRoute: typeof ApiConductorSpawnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat-events': {
+      id: '/api/chat-events'
+      path: '/api/chat-events'
+      fullPath: '/api/chat-events'
+      preLoaderRoute: typeof ApiChatEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth-check': {
+      id: '/api/auth-check'
+      path: '/api/auth-check'
+      fullPath: '/api/auth-check'
+      preLoaderRoute: typeof ApiAuthCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth': {
+      id: '/api/auth'
+      path: '/api/auth'
+      fullPath: '/api/auth'
+      preLoaderRoute: typeof ApiAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tasks/': {
+      id: '/api/tasks/'
+      path: '/api/tasks'
+      fullPath: '/api/tasks/'
+      preLoaderRoute: typeof ApiTasksIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/operations/': {
@@ -2078,88 +1971,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOperationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/profiles/activate': {
-      id: '/api/profiles/activate'
-      path: '/api/profiles/activate'
-      fullPath: '/api/profiles/activate'
-      preLoaderRoute: typeof ApiProfilesActivateRouteImport
+    '/api/crews/': {
+      id: '/api/crews/'
+      path: '/api/crews'
+      fullPath: '/api/crews/'
+      preLoaderRoute: typeof ApiCrewsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/profiles/create': {
-      id: '/api/profiles/create'
-      path: '/api/profiles/create'
-      fullPath: '/api/profiles/create'
-      preLoaderRoute: typeof ApiProfilesCreateRouteImport
+    '/api/audit/': {
+      id: '/api/audit/'
+      path: '/api/audit'
+      fullPath: '/api/audit/'
+      preLoaderRoute: typeof ApiAuditIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/profiles/delete': {
-      id: '/api/profiles/delete'
-      path: '/api/profiles/delete'
-      fullPath: '/api/profiles/delete'
-      preLoaderRoute: typeof ApiProfilesDeleteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/profiles/list': {
-      id: '/api/profiles/list'
-      path: '/api/profiles/list'
-      fullPath: '/api/profiles/list'
-      preLoaderRoute: typeof ApiProfilesListRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/profiles/read': {
-      id: '/api/profiles/read'
-      path: '/api/profiles/read'
-      fullPath: '/api/profiles/read'
-      preLoaderRoute: typeof ApiProfilesReadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/profiles/rename': {
-      id: '/api/profiles/rename'
-      path: '/api/profiles/rename'
-      fullPath: '/api/profiles/rename'
-      preLoaderRoute: typeof ApiProfilesRenameRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/sessions/send': {
-      id: '/api/sessions/send'
-      path: '/send'
-      fullPath: '/api/sessions/send'
-      preLoaderRoute: typeof ApiSessionsSendRouteImport
-      parentRoute: typeof ApiSessionsRoute
-    }
-    '/api/skills/hub-search': {
-      id: '/api/skills/hub-search'
-      path: '/hub-search'
-      fullPath: '/api/skills/hub-search'
-      preLoaderRoute: typeof ApiSkillsHubSearchRouteImport
-      parentRoute: typeof ApiSkillsRoute
-    }
-    '/api/skills/install': {
-      id: '/api/skills/install'
-      path: '/install'
-      fullPath: '/api/skills/install'
-      preLoaderRoute: typeof ApiSkillsInstallRouteImport
-      parentRoute: typeof ApiSkillsRoute
-    }
-    '/api/skills/settings': {
-      id: '/api/skills/settings'
-      path: '/settings'
-      fullPath: '/api/skills/settings'
-      preLoaderRoute: typeof ApiSkillsSettingsRouteImport
-      parentRoute: typeof ApiSkillsRoute
-    }
-    '/api/skills/uninstall': {
-      id: '/api/skills/uninstall'
-      path: '/uninstall'
-      fullPath: '/api/skills/uninstall'
-      preLoaderRoute: typeof ApiSkillsUninstallRouteImport
-      parentRoute: typeof ApiSkillsRoute
-    }
-    '/api/tasks/': {
-      id: '/api/tasks/'
-      path: '/api/tasks'
-      fullPath: '/api/tasks/'
-      preLoaderRoute: typeof ApiTasksIndexRouteImport
+    '/api/agents/': {
+      id: '/api/agents/'
+      path: '/api/agents'
+      fullPath: '/api/agents/'
+      preLoaderRoute: typeof ApiAgentsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/tasks/$taskId': {
@@ -2169,32 +1999,263 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTasksTaskIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/approvals/$approvalId/approve': {
-      id: '/api/approvals/$approvalId/approve'
-      path: '/api/approvals/$approvalId/approve'
-      fullPath: '/api/approvals/$approvalId/approve'
-      preLoaderRoute: typeof ApiApprovalsApprovalIdApproveRouteImport
+    '/api/skills/uninstall': {
+      id: '/api/skills/uninstall'
+      path: '/uninstall'
+      fullPath: '/api/skills/uninstall'
+      preLoaderRoute: typeof ApiSkillsUninstallRouteImport
+      parentRoute: typeof ApiSkillsRoute
+    }
+    '/api/skills/settings': {
+      id: '/api/skills/settings'
+      path: '/settings'
+      fullPath: '/api/skills/settings'
+      preLoaderRoute: typeof ApiSkillsSettingsRouteImport
+      parentRoute: typeof ApiSkillsRoute
+    }
+    '/api/skills/install': {
+      id: '/api/skills/install'
+      path: '/install'
+      fullPath: '/api/skills/install'
+      preLoaderRoute: typeof ApiSkillsInstallRouteImport
+      parentRoute: typeof ApiSkillsRoute
+    }
+    '/api/skills/hub-search': {
+      id: '/api/skills/hub-search'
+      path: '/hub-search'
+      fullPath: '/api/skills/hub-search'
+      preLoaderRoute: typeof ApiSkillsHubSearchRouteImport
+      parentRoute: typeof ApiSkillsRoute
+    }
+    '/api/sessions/send': {
+      id: '/api/sessions/send'
+      path: '/send'
+      fullPath: '/api/sessions/send'
+      preLoaderRoute: typeof ApiSessionsSendRouteImport
+      parentRoute: typeof ApiSessionsRoute
+    }
+    '/api/profiles/rename': {
+      id: '/api/profiles/rename'
+      path: '/api/profiles/rename'
+      fullPath: '/api/profiles/rename'
+      preLoaderRoute: typeof ApiProfilesRenameRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/approvals/$approvalId/deny': {
-      id: '/api/approvals/$approvalId/deny'
-      path: '/api/approvals/$approvalId/deny'
-      fullPath: '/api/approvals/$approvalId/deny'
-      preLoaderRoute: typeof ApiApprovalsApprovalIdDenyRouteImport
+    '/api/profiles/read': {
+      id: '/api/profiles/read'
+      path: '/api/profiles/read'
+      fullPath: '/api/profiles/read'
+      preLoaderRoute: typeof ApiProfilesReadRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/crews/$crewId/clone': {
-      id: '/api/crews/$crewId/clone'
-      path: '/clone'
-      fullPath: '/api/crews/$crewId/clone'
-      preLoaderRoute: typeof ApiCrewsCrewIdCloneRouteImport
-      parentRoute: typeof ApiCrewsCrewIdRoute
+    '/api/profiles/list': {
+      id: '/api/profiles/list'
+      path: '/api/profiles/list'
+      fullPath: '/api/profiles/list'
+      preLoaderRoute: typeof ApiProfilesListRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/api/crews/$crewId/dispatch': {
-      id: '/api/crews/$crewId/dispatch'
-      path: '/dispatch'
-      fullPath: '/api/crews/$crewId/dispatch'
-      preLoaderRoute: typeof ApiCrewsCrewIdDispatchRouteImport
+    '/api/profiles/delete': {
+      id: '/api/profiles/delete'
+      path: '/api/profiles/delete'
+      fullPath: '/api/profiles/delete'
+      preLoaderRoute: typeof ApiProfilesDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/profiles/create': {
+      id: '/api/profiles/create'
+      path: '/api/profiles/create'
+      fullPath: '/api/profiles/create'
+      preLoaderRoute: typeof ApiProfilesCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/profiles/activate': {
+      id: '/api/profiles/activate'
+      path: '/api/profiles/activate'
+      fullPath: '/api/profiles/activate'
+      preLoaderRoute: typeof ApiProfilesActivateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/oauth/poll-token': {
+      id: '/api/oauth/poll-token'
+      path: '/api/oauth/poll-token'
+      fullPath: '/api/oauth/poll-token'
+      preLoaderRoute: typeof ApiOauthPollTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/oauth/device-code': {
+      id: '/api/oauth/device-code'
+      path: '/api/oauth/device-code'
+      fullPath: '/api/oauth/device-code'
+      preLoaderRoute: typeof ApiOauthDeviceCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/memory/write': {
+      id: '/api/memory/write'
+      path: '/write'
+      fullPath: '/api/memory/write'
+      preLoaderRoute: typeof ApiMemoryWriteRouteImport
+      parentRoute: typeof ApiMemoryRoute
+    }
+    '/api/memory/search': {
+      id: '/api/memory/search'
+      path: '/search'
+      fullPath: '/api/memory/search'
+      preLoaderRoute: typeof ApiMemorySearchRouteImport
+      parentRoute: typeof ApiMemoryRoute
+    }
+    '/api/memory/read': {
+      id: '/api/memory/read'
+      path: '/read'
+      fullPath: '/api/memory/read'
+      preLoaderRoute: typeof ApiMemoryReadRouteImport
+      parentRoute: typeof ApiMemoryRoute
+    }
+    '/api/memory/list': {
+      id: '/api/memory/list'
+      path: '/list'
+      fullPath: '/api/memory/list'
+      preLoaderRoute: typeof ApiMemoryListRouteImport
+      parentRoute: typeof ApiMemoryRoute
+    }
+    '/api/mcp/servers': {
+      id: '/api/mcp/servers'
+      path: '/api/mcp/servers'
+      fullPath: '/api/mcp/servers'
+      preLoaderRoute: typeof ApiMcpServersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mcp/reload': {
+      id: '/api/mcp/reload'
+      path: '/api/mcp/reload'
+      fullPath: '/api/mcp/reload'
+      preLoaderRoute: typeof ApiMcpReloadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/knowledge/vault': {
+      id: '/api/knowledge/vault'
+      path: '/api/knowledge/vault'
+      fullPath: '/api/knowledge/vault'
+      preLoaderRoute: typeof ApiKnowledgeVaultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/knowledge/sync': {
+      id: '/api/knowledge/sync'
+      path: '/api/knowledge/sync'
+      fullPath: '/api/knowledge/sync'
+      preLoaderRoute: typeof ApiKnowledgeSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/knowledge/search': {
+      id: '/api/knowledge/search'
+      path: '/api/knowledge/search'
+      fullPath: '/api/knowledge/search'
+      preLoaderRoute: typeof ApiKnowledgeSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/knowledge/read': {
+      id: '/api/knowledge/read'
+      path: '/api/knowledge/read'
+      fullPath: '/api/knowledge/read'
+      preLoaderRoute: typeof ApiKnowledgeReadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/knowledge/list': {
+      id: '/api/knowledge/list'
+      path: '/api/knowledge/list'
+      fullPath: '/api/knowledge/list'
+      preLoaderRoute: typeof ApiKnowledgeListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/knowledge/graph': {
+      id: '/api/knowledge/graph'
+      path: '/api/knowledge/graph'
+      fullPath: '/api/knowledge/graph'
+      preLoaderRoute: typeof ApiKnowledgeGraphRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/hermes-proxy/$': {
+      id: '/api/hermes-proxy/$'
+      path: '/api/hermes-proxy/$'
+      fullPath: '/api/hermes-proxy/$'
+      preLoaderRoute: typeof ApiHermesProxySplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/hermes-jobs/$jobId': {
+      id: '/api/hermes-jobs/$jobId'
+      path: '/$jobId'
+      fullPath: '/api/hermes-jobs/$jobId'
+      preLoaderRoute: typeof ApiHermesJobsJobIdRouteImport
+      parentRoute: typeof ApiHermesJobsRoute
+    }
+    '/api/events/replay': {
+      id: '/api/events/replay'
+      path: '/replay'
+      fullPath: '/api/events/replay'
+      preLoaderRoute: typeof ApiEventsReplayRouteImport
+      parentRoute: typeof ApiEventsRoute
+    }
+    '/api/crews/$crewId': {
+      id: '/api/crews/$crewId'
+      path: '/api/crews/$crewId'
+      fullPath: '/api/crews/$crewId'
+      preLoaderRoute: typeof ApiCrewsCrewIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/agents/$agentId': {
+      id: '/api/agents/$agentId'
+      path: '/api/agents/$agentId'
+      fullPath: '/api/agents/$agentId'
+      preLoaderRoute: typeof ApiAgentsAgentIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/crews/templates/': {
+      id: '/api/crews/templates/'
+      path: '/api/crews/templates'
+      fullPath: '/api/crews/templates/'
+      preLoaderRoute: typeof ApiCrewsTemplatesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tasks/$taskId/move': {
+      id: '/api/tasks/$taskId/move'
+      path: '/move'
+      fullPath: '/api/tasks/$taskId/move'
+      preLoaderRoute: typeof ApiTasksTaskIdMoveRouteImport
+      parentRoute: typeof ApiTasksTaskIdRoute
+    }
+    '/api/sessions/$sessionKey/status': {
+      id: '/api/sessions/$sessionKey/status'
+      path: '/$sessionKey/status'
+      fullPath: '/api/sessions/$sessionKey/status'
+      preLoaderRoute: typeof ApiSessionsSessionKeyStatusRouteImport
+      parentRoute: typeof ApiSessionsRoute
+    }
+    '/api/sessions/$sessionKey/active-run': {
+      id: '/api/sessions/$sessionKey/active-run'
+      path: '/$sessionKey/active-run'
+      fullPath: '/api/sessions/$sessionKey/active-run'
+      preLoaderRoute: typeof ApiSessionsSessionKeyActiveRunRouteImport
+      parentRoute: typeof ApiSessionsRoute
+    }
+    '/api/hermes-runs/$runId/events': {
+      id: '/api/hermes-runs/$runId/events'
+      path: '/$runId/events'
+      fullPath: '/api/hermes-runs/$runId/events'
+      preLoaderRoute: typeof ApiHermesRunsRunIdEventsRouteImport
+      parentRoute: typeof ApiHermesRunsRoute
+    }
+    '/api/crews/templates/$id': {
+      id: '/api/crews/templates/$id'
+      path: '/api/crews/templates/$id'
+      fullPath: '/api/crews/templates/$id'
+      preLoaderRoute: typeof ApiCrewsTemplatesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/crews/$crewId/workflow': {
+      id: '/api/crews/$crewId/workflow'
+      path: '/workflow'
+      fullPath: '/api/crews/$crewId/workflow'
+      preLoaderRoute: typeof ApiCrewsCrewIdWorkflowRouteImport
       parentRoute: typeof ApiCrewsCrewIdRoute
     }
     '/api/crews/$crewId/usage': {
@@ -2204,54 +2265,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCrewsCrewIdUsageRouteImport
       parentRoute: typeof ApiCrewsCrewIdRoute
     }
-    '/api/crews/$crewId/workflow': {
-      id: '/api/crews/$crewId/workflow'
-      path: '/workflow'
-      fullPath: '/api/crews/$crewId/workflow'
-      preLoaderRoute: typeof ApiCrewsCrewIdWorkflowRouteImport
+    '/api/crews/$crewId/dispatch': {
+      id: '/api/crews/$crewId/dispatch'
+      path: '/dispatch'
+      fullPath: '/api/crews/$crewId/dispatch'
+      preLoaderRoute: typeof ApiCrewsCrewIdDispatchRouteImport
       parentRoute: typeof ApiCrewsCrewIdRoute
     }
-    '/api/crews/templates/': {
-      id: '/api/crews/templates/'
-      path: '/api/crews/templates'
-      fullPath: '/api/crews/templates/'
-      preLoaderRoute: typeof ApiCrewsTemplatesIndexRouteImport
+    '/api/crews/$crewId/clone': {
+      id: '/api/crews/$crewId/clone'
+      path: '/clone'
+      fullPath: '/api/crews/$crewId/clone'
+      preLoaderRoute: typeof ApiCrewsCrewIdCloneRouteImport
+      parentRoute: typeof ApiCrewsCrewIdRoute
+    }
+    '/api/approvals/$approvalId/deny': {
+      id: '/api/approvals/$approvalId/deny'
+      path: '/api/approvals/$approvalId/deny'
+      fullPath: '/api/approvals/$approvalId/deny'
+      preLoaderRoute: typeof ApiApprovalsApprovalIdDenyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/crews/templates/$id': {
-      id: '/api/crews/templates/$id'
-      path: '/api/crews/templates/$id'
-      fullPath: '/api/crews/templates/$id'
-      preLoaderRoute: typeof ApiCrewsTemplatesIdRouteImport
+    '/api/approvals/$approvalId/approve': {
+      id: '/api/approvals/$approvalId/approve'
+      path: '/api/approvals/$approvalId/approve'
+      fullPath: '/api/approvals/$approvalId/approve'
+      preLoaderRoute: typeof ApiApprovalsApprovalIdApproveRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/api/hermes-runs/$runId/events': {
-      id: '/api/hermes-runs/$runId/events'
-      path: '/$runId/events'
-      fullPath: '/api/hermes-runs/$runId/events'
-      preLoaderRoute: typeof ApiHermesRunsRunIdEventsRouteImport
-      parentRoute: typeof ApiHermesRunsRoute
-    }
-    '/api/sessions/$sessionKey/active-run': {
-      id: '/api/sessions/$sessionKey/active-run'
-      path: '/$sessionKey/active-run'
-      fullPath: '/api/sessions/$sessionKey/active-run'
-      preLoaderRoute: typeof ApiSessionsSessionKeyActiveRunRouteImport
-      parentRoute: typeof ApiSessionsRoute
-    }
-    '/api/sessions/$sessionKey/status': {
-      id: '/api/sessions/$sessionKey/status'
-      path: '/$sessionKey/status'
-      fullPath: '/api/sessions/$sessionKey/status'
-      preLoaderRoute: typeof ApiSessionsSessionKeyStatusRouteImport
-      parentRoute: typeof ApiSessionsRoute
-    }
-    '/api/tasks/$taskId/move': {
-      id: '/api/tasks/$taskId/move'
-      path: '/move'
-      fullPath: '/api/tasks/$taskId/move'
-      preLoaderRoute: typeof ApiTasksTaskIdMoveRouteImport
-      parentRoute: typeof ApiTasksTaskIdRoute
     }
   }
 }
@@ -2461,6 +2501,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiKnowledgeListRoute: ApiKnowledgeListRoute,
   ApiKnowledgeReadRoute: ApiKnowledgeReadRoute,
   ApiKnowledgeSearchRoute: ApiKnowledgeSearchRoute,
+  ApiKnowledgeSyncRoute: ApiKnowledgeSyncRoute,
+  ApiKnowledgeVaultRoute: ApiKnowledgeVaultRoute,
   ApiMcpReloadRoute: ApiMcpReloadRoute,
   ApiMcpServersRoute: ApiMcpServersRoute,
   ApiOauthDeviceCodeRoute: ApiOauthDeviceCodeRoute,
